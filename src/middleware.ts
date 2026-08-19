@@ -37,7 +37,7 @@ const SPLASH_HTML = `<!doctype html>
 	<body>
 		<div class="card">
 			<h1>Matlack Electric</h1>
-			<p>We're building a brand new website. Check back soon.</p>
+			<p>I've moved to Chattanooga, TN and I'm building a brand new website. Check back soon. If you're here from Chester County, PA - I'll miss you! Please reach out with any questions.</p>
 			<p class="contact">
 				<a href="tel:+16107567752">(610) 756-7752</a> &middot;
 				<a href="mailto:info@matlackelectric.com">info@matlackelectric.com</a>

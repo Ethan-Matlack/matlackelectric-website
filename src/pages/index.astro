@@ -1,50 +1,62 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import Layout from "../layouts/Layout.astro";
+import LightBeam from "../components/LightBeam.astro";
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This
-				template serves as a lightweight, minimally-styled starting point for anyone looking to build
-				a personal website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your
-				<code>astro.config.mjs</code> file. You can customize your setup with
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like Tailwind,
-				React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>Edit this page in <code>src/pages/index.astro</code></li>
-				<li>Edit the site header items in <code>src/components/Header.astro</code></li>
-				<li>Add your name to the footer in <code>src/components/Footer.astro</code></li>
-				<li>Check out the included blog posts in <code>src/content/blog/</code></li>
-				<li>Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code></li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to <a href="https://docs.astro.build/"
-					>read the docs
-				</a> or <a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out <a
-					href="https://github.com/Charca/astro-blog-template"
-					>astro-blog-template
-				</a> by <a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
-		</main>
-		<Footer />
-	</body>
-</html>
+<Layout
+  title="Matlack Electric | Premier Residential Electrical for Renovations"
+  description="Matlack Electric is a premier residential electrical contractor specializing in remodels and renovations — wiring, low-voltage, custom lighting, EV charging, generators, battery backup, and Lutron smart control."
+>
+  <section class="hero">
+    <div class="light-beam" aria-hidden="true">
+      <LightBeam angle={30} originX="4rem"              moteCount={10} pulseDelay="0.0s" onDelay="0.0s" fadeInDuration="0.8s" />
+      <LightBeam angle={30} originX="calc(100% - 4rem)" moteCount={10} pulseDelay="2.3s" onDelay="0.7s" fadeInDuration="1.2s" />
+      <LightBeam angle={10} originX="7rem"              moteCount={ 5} pulseDelay="1.1s" onDelay="1.4s" fadeInDuration="1.6s" />
+    </div>
+    <div class="container">
+      <h1>Premier Electrical Craftsmanship for Your Home</h1>
+      <p>
+        From whole-home rewiring to custom lighting design, smart home
+        control, EV charging, and backup power - absolute quality on
+        every project.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/contact/">Get a Quote</a>
+        <a class="btn btn-outline" href="/services/">View Services</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="section-heading">
+      <h2>What We Offer</h2>
+      <p>
+        A quick look at how we can help. Visit the services page for full
+        details.
+      </p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Renovation Wiring</h3>
+        <p>
+          Whole-home rewiring and panel upgrades built for remodels and
+          additions.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Custom Lighting &amp; Smart Home</h3>
+        <p>
+          Lighting design and installation, plus Lutron Caseta and RadioRa
+          control systems.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Power &amp; Resilience</h3>
+        <p>
+          EV chargers, standby generators, and battery backup for the modern
+          home.
+        </p>
+      </div>
+    </div>
+  </section>
+</Layout>

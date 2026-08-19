@@ -1,0 +1,118 @@
+---
+import { Image } from "astro:assets";
+import Layout from "../layouts/Layout.astro";
+import lutronBadge from "../images/lutron-preferred-pro.png";
+import generacBadge from "../images/generac-certified-installer.webp";
+import teslaBadge from "../images/tesla-certified-installer.png";
+---
+
+<Layout
+  title="Partners & Certifications | Matlack Electric"
+  description="Matlack Electric is a certified Lutron Caseta, Lutron RadioRA 3, Generac, and Tesla installer. See the brands we use for lighting control, backup power, EV charging, and networking, and why we choose them."
+>
+  <section class="hero">
+    <div class="container">
+      <h1>Our Partners &amp; Certifications</h1>
+      <p>
+        The products we install say as much about our work as the wiring
+        behind the walls. Here's what we're certified in, what we choose to
+        install, and why.
+      </p>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="section-heading">
+      <h2>Certified Installers</h2>
+      <p>
+        These are the manufacturers we hold formal certifications with -
+        training that covers design and programming, not just wiring.
+      </p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <Image src={lutronBadge} alt="Lutron - Preferred Pro" class="partner-logo" />
+        <br>
+        <p>
+          We're certified in both of Lutron's core platforms, so the system
+          fits your renovation instead of the other way around. Caséta's
+          retrofit-friendly dimmers and switches suit smaller projects and
+          budgets where opening every wall isn't in the plan, while RadioRA
+          3 brings full whole-home lighting control to larger renovations
+          that call for it. Either way, our certification means it's
+          designed and programmed properly, not just wired.
+        </p>
+      </div>
+      <div class="card">
+        <Image src={teslaBadge} alt="Tesla - Certified Installer" class="partner-logo" />
+        <br>
+        <p>
+          Tesla's EV charging solutions are second-to-none, even for non-Teslas, and that's
+          why we're proud to be certified to install their wall connectors for our clients.
+          As a Tesla Certified Installer we can source parts directly from Tesla to ensure a
+          smooth installation process.
+        </p>
+      </div>
+      <div class="card">
+        <Image src={generacBadge} alt="Generac - Certified Installer" class="partner-logo" />
+        <br>
+        <p>
+          Generac is the name most homeowners already know for standby
+          generators, and for good reason. As a certified installer, we
+          handle sizing, transfer switch installation, and setup to
+          Generac's standards - which also keeps your warranty intact.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="section-heading">
+      <h2>Brands We're Proud to Install</h2>
+      <p>
+        Beyond our formal certifications, these are the brands we reach for
+        because we trust the hardware and stand behind it after a project
+        wraps.
+      </p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Ubiquiti</h3>
+        <p>
+          Modern renovations need modern networks - WiFi that actually
+          reaches every room, wired drops where they're needed, and a
+          system built to be expanded later. We spec Ubiquiti's UniFi
+          hardware for our <a href="/services/">low-voltage and networking</a> work because
+          it's professional-grade equipment that doesn't lock you into a
+          subscription to keep working.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Lutron</h3>
+        <p>
+          Beyond our Caseta and RadioRA 3 certifications, Lutron is simply
+          the brand we reach for on lighting and shade control at every
+          scale. Reliable hardware and a design language that scales from a
+          single dimmer to a whole-home system.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Elco Lighting</h3>
+        <p>
+          For the fixtures themselves - recessed lighting, downlights, and
+          the architectural details that make a lighting design feel
+          finished - we favor Elco. Well-made fixtures paired with a
+          well-designed system are what separate a lighting job that just
+          works from one that elevates a room.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="notice">
+      <p>Curious how these fit into your renovation? Let's talk through what makes sense for your home.</p>
+      <a class="btn btn-primary" href="/contact/">Get a Quote</a>
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,75 @@
+---
+// A single decorative light cone, meant to be placed inside a `.light-beam`
+// layer (see global.css). `angle` is the beam's full real-world spread angle
+// in degrees — tan(angle / 2) is computed once here at build time and
+// combined with the CSS container-query height unit (100cqh, the actual
+// rendered height of the `.light-beam` layer) so the cone's geometry is
+// exact regardless of viewport width *and* hero height, not an
+// approximation. `originX` is a CSS length/position (e.g. "4rem" or
+// "calc(100% - 4rem)") for where the beam's point source sits horizontally.
+// `onDelay`/`fadeInDuration` control the one-time "power on" fade-in on page
+// load (stagger onDelay across instances for a turn-on-in-sequence effect);
+// `pulseDelay` is unrelated — it offsets the ongoing infinite breathing
+// animation that continues after the power-on finishes.
+interface Props {
+	angle: number;
+	originX: string;
+	moteCount?: number;
+	pulseDelay?: string;
+	onDelay?: string;
+	fadeInDuration?: string;
+}
+
+const {
+	angle,
+	originX,
+	moteCount = 10,
+	pulseDelay = "0s",
+	onDelay = "0s",
+	fadeInDuration = "0.5s",
+} = Astro.props;
+
+const halfAngleRad = (angle / 2) * (Math.PI / 180);
+const tanHalfAngle = Math.tan(halfAngleRad).toFixed(4);
+
+// Mirrors the beam gradient's own alpha falloff in global.css (0.45 -> 0.18
+// by 40% depth -> 0 by 90% depth), normalized to a 0-1 ceiling, so motes fade
+// out at the same rate the beam itself does instead of staying fully bright
+// past the point the beam has already faded to nothing.
+function fadeAt(t: number) {
+	if (t <= 0.4) return 1 - (t / 0.4) * 0.6;
+	if (t <= 0.9) return 0.4 * (1 - (t - 0.4) / 0.35);
+	return 0;
+}
+
+const motes = Array.from({ length: moteCount }, () => {
+	// Keep clear of the first ~22% of depth: the cone is only a few pixels
+	// wide that close to the apex — too narrow for a dot's own radius to fit
+	// inside without poking out either side, especially for narrow-angle
+	// beams. Scaling `side` to 0.7 keeps dots off the cone's literal edge too,
+	// leaving room for their radius (they're pixel-sized, not points).
+	const t = 0.22 + Math.random() * 0.68;
+	const side = (Math.random() * 2 - 1) * 0.7; // -0.7..0.7 across the cone's width at this depth
+	return {
+		y: (t * 100).toFixed(1),
+		k: (side * t).toFixed(3),
+		size: (4 + Math.random() * 4).toFixed(1),
+		duration: (6 + Math.random() * 6).toFixed(1),
+		delay: (Math.random() * -12).toFixed(1),
+		fade: fadeAt(t).toFixed(2),
+	};
+});
+
+const beamVars = `--origin-x: ${originX}; --tan-half-angle: ${tanHalfAngle}; --pulse-delay: ${pulseDelay};`;
+const groupVars = `--on-delay: ${onDelay}; --fade-in-duration: ${fadeInDuration};`;
+---
+
+<div class="light-beam-group" style={groupVars}>
+	<div class="light-beam-cone" style={beamVars}></div>
+	{motes.map((m) => (
+		<span
+			class="mote"
+			style={`${beamVars} --k:${m.k}; --y:${m.y}%; --size:${m.size}px; --duration:${m.duration}s; --delay:${m.delay}s; --fade:${m.fade};`}
+		/>
+	))}
+</div>

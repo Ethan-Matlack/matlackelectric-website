@@ -1,0 +1,91 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+  title="Contact | Matlack Electric"
+  description="Get in touch with Matlack Electric for a quote or to ask a question."
+>
+  <section class="hero">
+    <div class="container">
+      <h1>Contact Us</h1>
+      <p>
+        Got a quick question? Give us a call or send a text. A little more complex? Send over an email or fill out
+        this form with all the details - it'll automatically enter our software and we can get you a reply much faster.
+        (Don't worry, we don't send marketing messages!)
+      </p>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="card contact-form">
+      <link rel="preload" as="image" href="https://cdn.jobtread.com/G1QAaBwHdkw8xHbou6bdef37pW00nsdFfkqhHLhIHZa-EnlrRQSyKCs5OgnlKxjLtQekAgWZRaxjjwYyAVC1djRR6C_tGlPLkIXRnAE.xfzROnu70ADt3BtteQp4OtKSAzOLMHLWxaW5oiilgW8?size=1024"/>
+      <form class="jtwf" data-jobtread-web-form="true" data-key="22SxXrKU93MWCzFPucTdEVgPPDJ8UD9QHp">
+        <div class="form-field">
+          <label for="contact-name">Name <span class="required" aria-hidden="true">*</span></label>
+          <input id="contact-name" type="text" required name="contact.name"/>
+        </div>
+        <div class="form-field">
+          <label for="contact-email">Email</label>
+          <input id="contact-email" type="email" required name="contact.custom.22NizUsWfjjL"/>
+        </div>
+        <div class="form-field">
+          <label for="contact-phone">Phone</label>
+          <input id="contact-phone" type="tel" name="contact.custom.22NizUsfZwWs"/>
+        </div>
+        <div class="form-field">
+          <label for="contact-address">Address <span class="required" aria-hidden="true">*</span></label>
+          <textarea id="contact-address" name="location.address" required rows="2"></textarea>
+        </div>
+        <div class="form-field">
+          <label for="contact-description">Description <span class="required" aria-hidden="true">*</span></label>
+          <textarea id="contact-description" name="job.description" required rows="4"></textarea>
+        </div>
+        <div class="form-field">
+          <label for="contact-files">Files &amp; Photos</label>
+          <input id="contact-files" type="file" multiple name="account.files"/>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit" data-submit-button="true">Submit</button>
+        </div>
+      </form>
+      <script async src="https://app.jobtread.com/web-form.js"></script>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Phone</h3>
+        <p><a href="tel:+16107567752">(610) 756-7752</a></p>
+        <p>Available most weekdays 8am to 6pm via call or text.</p>
+      </div>
+      <div class="card">
+        <h3>Email</h3>
+        <p><a href="mailto:info@matlackelectric.com">info@matlackelectric.com</a></p>
+        <p>Most emails get returned in under 48 business hours.</p>
+      </div>
+      <div class="card">
+        <h3>Service Area</h3>
+        <p>Based out of Lookout Valley. Serving Chattanooga and surrounding areas.</p>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  // Grow each textarea to fit its content as the user types, instead of
+  // scrolling internally. Purely an enhancement — the resize handle from
+  // global.css still works as a manual fallback if this doesn't run.
+  const autoGrow = (textarea: HTMLTextAreaElement) => {
+    // scrollHeight excludes the textarea's own border, but its box-sizing
+    // is border-box — without adding that border back, height ends up a
+    // couple pixels short of the content and leaves a sliver of internal
+    // scroll, which is exactly what this is meant to avoid.
+    const borderHeight = textarea.offsetHeight - textarea.clientHeight;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight + borderHeight}px`;
+  };
+
+  document.querySelectorAll<HTMLTextAreaElement>(".form-field textarea").forEach((textarea) => {
+    autoGrow(textarea);
+    textarea.addEventListener("input", () => autoGrow(textarea));
+  });
+</script>

@@ -1,11 +1,19 @@
 {
 	"name": "matlackelectric-website",
 	"compatibility_date": "2025-10-08",
-	"compatibility_flags": ["nodejs_compat"],
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"main": "./dist/_worker.js/index.js",
+	"routes": [
+		{ "pattern": "matlackelectric.com", "custom_domain": true },
+		{ "pattern": "www.matlackelectric.com", "custom_domain": true },
+		{ "pattern": "new.matlackelectric.com", "custom_domain": true }
+	],
 	"assets": {
 		"directory": "./dist",
-		"binding": "ASSETS"
+		"binding": "ASSETS",
+		"run_worker_first": true
 	},
 	"observability": {
 		"enabled": true

@@ -16,10 +16,15 @@
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
   --container-width: 1000px;
-  --lightbeamcontainer-width: 800px;
   --radius: 6px;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
   --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.10);
+
+  /* .site-header is sticky, in normal flow above <main> — not overlaid —
+     so anything sized against 100svh (namely .hero-room) needs to subtract
+     this to actually fit in one screen. Kept in sync with .header-inner's
+     min-height below. */
+  --header-height: 4rem;
 }
 
 /* Reset ------------------------------------------------------------------ */
@@ -145,6 +150,7 @@ section {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: var(--header-height);
   padding-block: 0.9rem;
   position: relative;
 }
@@ -246,167 +252,263 @@ section {
   padding-block: 3rem;
 }
 
-.hero h1 {
-  font-size: 1.75rem;
-}
-
-.hero p {
-  color: var(--color-muted);
-  max-width: 40ch;
-  margin-inline: auto;
-  margin-bottom: 1.5rem;
-}
-
-.hero-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-/* Light beams — decorative, sit behind the hero content and cast a wash of
-   light down from point sources at the bottom of the header. Pure CSS +
-   build-time-generated dust motes; no client JS. Multiple <LightBeam>
-   instances share this one `.light-beam` layer (see LightBeam.astro).
-
-   Each beam's real spread angle is computed once at build time as
-   tan(angle / 2) and exposed as --tan-half-angle (a unitless number). At
-   render time that's multiplied by 100cqh — a CSS container query unit
-   equal to 1% of `.light-beam`'s own rendered height, which requires
-   `container-type: size` below. Using the layer's actual height (rather
-   than an approximated fixed length) means the angle stays exact
-   regardless of viewport width *and* however tall the hero happens to
-   render. --origin-x places each beam's point source; motes reference the
-   same variables so they stay physically inside their beam.
-
-   .hero's own background/border stay full-bleed — only the content column
-   is width-constrained, same as every other section on the site (see
-   .container). .light-beam uses a similiar bound to the --container-width bound
-   (via max-width + margin-inline: auto, the same recipe .container uses) so the
-   beams' origin points are relative to the actual content column, not the
-   full viewport — otherwise on a wide screen "4rem from the edge" would
-   mean 4rem from the browser edge, far from where the content sits. ----- */
-
-.hero .container {
+/* Homepage hero — the full-viewport interactive react-three-fiber scene
+   (see RoomHeroR3F.tsx). Deliberately its own class rather than a .hero
+   variant: every other page's .hero is a short text banner sized by its
+   content, while this is meant to fill the viewport, so sharing height
+   rules between them would fight. .room-hero-visual gives R3F's <Canvas>
+   (which fills 100%/100% of its parent by default) a positioned, sized box
+   to fill within .hero-room. */
+.hero-room {
   position: relative;
-  z-index: 1;
+  overflow: hidden;
+  height: calc(100svh - var(--header-height));
+  min-height: 24rem;
+  border-bottom: 1px solid var(--color-border);
+  /* Static screenshot of the default shot's scene ONLY (no splash text or
+     nav baked in — those are real DOM, sized by real CSS, and would scale
+     wrong as raster pixels under background-size:cover at any viewport
+     other than the one it was captured at). Visible immediately since it's
+     a CSS background, not JS, so there's no blank flash while
+     client:only="react" hydrates and the ~2MB GLB downloads.
+     .room-hero-canvas-wrap below fades the real scene in on top of it once
+     ready — see RoomHeroR3F.tsx. The splash/nav appear as normal React DOM
+     shortly after hydration, independent of the scene's own readiness. */
+  background-image: url("/images/hero-poster.jpg");
+  background-size: cover;
+  background-position: center;
 }
 
-.light-beam {
+.room-hero-visual {
   position: absolute;
   inset: 0;
-  max-width: var(--lightbeamcontainer-width);
-  margin-inline: auto;
   z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-  container-type: size;
 }
 
-.light-beam-group {
-  /* One-time "power on" reveal, separate from .light-beam-cone's own
-     infinite pulse below — two animations both touching opacity on the SAME
-     element don't blend, the later one just wins. Putting this on the
-     wrapper instead means the rendered result composites correctly: the
-     beam ramps up/reveals once on load, then the pulse/drift keep animating
-     underneath indefinitely.
-
-     clip-path: inset(0 0 100% 0) hides everything below the very top edge
-     (an inset "bottom" of 100% = 0 visible height, anchored at the top);
-     animating that bottom inset down to 0% grows the visible region
-     downward from the source point instead of the whole triangle fading in
-     as one flat block. It stacks with .light-beam-cone's own clip-path
-     polygon fine — each element clips its own rendered output, so this is
-     just a second, independent clip on top of the already-triangular cone
-     and its motes. */
+/* Hidden over the poster until isSceneReady flips, then an instant swap —
+   no fade/blur transition. The poster now matches the live frame closely
+   enough that animating the swap only drew attention to it; a straight cut
+   between two near-identical frames reads as nothing happening at all.
+   Still gated on isSceneReady (not a fixed page-load timer) so a slow GLB
+   fetch can never reveal an empty, geometry-less room. */
+.room-hero-canvas-wrap {
   position: absolute;
   inset: 0;
   opacity: 0;
-  clip-path: inset(0 0 100% 0);
-  animation: beam-power-on var(--fade-in-duration, 0.5s) ease-out var(--on-delay, 0s) forwards;
 }
 
-@keyframes beam-power-on {
-  from {
-    opacity: 0;
-    clip-path: inset(0 0 100% 0);
-  }
-  to {
-    opacity: 1;
-    clip-path: inset(0 0 0% 0);
-  }
+.room-hero-canvas-wrap.is-ready {
+  opacity: 1;
 }
 
-.light-beam-cone {
+.room-hero-shots {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(252, 211, 77, 0.45) 0%,
-    rgba(252, 211, 77, 0.18) 40%,
-    rgba(252, 211, 77, 0) 90%
-  );
-  clip-path: polygon(
-    calc(var(--origin-x) - 1px) 0%,
-    calc(var(--origin-x) + 1px) 0%,
-    calc(var(--origin-x) + (100cqh * var(--tan-half-angle))) 100%,
-    calc(var(--origin-x) - (100cqh * var(--tan-half-angle))) 100%
-  );
-  filter: blur(20px);
-  animation: beam-pulse 7s ease-in-out var(--pulse-delay, 0s) infinite;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.4rem;
+  background-color: color-mix(in srgb, var(--color-bg) 40%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
 }
 
-@keyframes beam-pulse {
-  0%,
-  100% {
-    opacity: 0.85;
-  }
-  50% {
-    opacity: 1;
-  }
+.room-hero-shots button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
-.mote {
+.room-hero-shots button:hover {
+  color: var(--color-text);
+}
+
+.room-hero-shots button.is-active {
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+/* Landing splash — only shown on the default shot (see SplashOverlay in
+   RoomHeroR3F.tsx). Stays mounted across shots and fades via opacity rather
+   than being added/removed, so it eases in step with the camera instead of
+   snapping, and pointer-events/tabindex are toggled alongside so it's not
+   interactive while faded out. */
+.room-hero-splash {
+  /* Anchored to the top rather than dead-center so it doesn't have to fight
+     the bottom-anchored shot nav for space — their clearance would
+     otherwise depend on the hero's height, which varies by viewport. */
   position: absolute;
-  left: calc(var(--origin-x) + (var(--k) * 100cqh * var(--tan-half-angle)));
-  top: var(--y);
-  width: var(--size);
-  height: var(--size);
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  width: min(30rem, calc(100% - 2rem));
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--color-bg) 40%, transparent);
+  backdrop-filter: blur(8px);
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.room-hero-splash.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  /* Delay only applies going hidden -> visible (this rule); fading back out
+     uses the base rule's plain 0.35s with no delay, so leaving the default
+     shot hides the splash immediately instead of lagging behind. */
+  transition: opacity 0.35s ease 0.5s;
+}
+
+.room-hero-splash h1 {
+  font-size: 1.5rem;
+}
+
+.room-hero-splash p {
+  color: var(--color-muted);
+  margin-bottom: 1.25rem;
+}
+
+.room-hero-splash-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+/* Controls column — only on the Controls shot: the keypad plus the
+   day/night toggle underneath it, stacked together so they read as one
+   control cluster anchored to the side of the shot (see KeypadPanel and
+   DayNightToggle in RoomHeroR3F.tsx). Not centered like the splash: these
+   are small real controls, not the visual focus of the shot — the room's
+   lighting response is. */
+.room-hero-controls {
+  position: absolute;
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 8.5rem;
+}
+
+/* No fade-in delay unlike the splash, since arriving here is already a
+   deliberate choice to use it. */
+.room-hero-keypad {
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem;
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--color-bg) 40%, transparent);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.room-hero-keypad.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.room-hero-keypad button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: none;
+  border: none;
+  border-top: 1px solid var(--color-border);
+  padding: 0.65rem 0.5rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.room-hero-keypad button:first-child {
+  border-top: none;
+}
+
+.room-hero-keypad-led {
+  width: 0.4rem;
+  height: 0.4rem;
   border-radius: 50%;
-  background: rgba(252, 211, 77, 0.85);
-  filter: blur(1px);
-  animation: mote-drift var(--duration) ease-in-out var(--delay) infinite alternate;
+  background-color: var(--color-border);
+  flex-shrink: 0;
 }
 
-@keyframes mote-drift {
-  from {
-    /* The leading translate(-50%, -50%) centers the dot on its computed
-       point instead of anchoring by its top-left corner — without it, a
-       mote's own size pushes it past the cone's edge near the apex, where
-       the beam is only a couple of pixels wide. --fade is the ceiling from
-       LightBeam.astro matching the beam's own gradient falloff. */
-    transform: translate(-50%, -50%) translate(0, 0);
-    opacity: calc(var(--fade, 1) * 0.35);
-  }
-  to {
-    transform: translate(-50%, -50%) translate(14px, -20px);
-    opacity: calc(var(--fade, 1) * 0.9);
-  }
+.room-hero-keypad button.is-active {
+  color: var(--color-primary);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .light-beam-cone,
-  .mote {
-    animation: none;
-  }
+.room-hero-keypad button.is-active .room-hero-keypad-led {
+  background-color: #34d399;
+}
 
-  .light-beam-group {
-    /* Without the fade-in animation, opacity would fall back to its
-       declared 0 and the beam would stay invisible forever — show it
-       immediately instead. */
-    animation: none;
-    opacity: 1;
-  }
+/* Day/night toggle — a segmented switch, deliberately distinct from the
+   keypad buttons above it: this isn't a 5th keypad button (a real RA3
+   keypad wouldn't have one), it's a separate override for what's visible
+   through the window. */
+.room-hero-daynight {
+  display: flex;
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--color-bg) 40%, transparent);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.room-hero-daynight.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.room-hero-daynight button {
+  flex: 1;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  background: none;
+  border: none;
+  padding: 0.5rem 0.25rem;
+  cursor: pointer;
+  text-align: center;
+}
+
+.room-hero-daynight button:first-child {
+  border-right: 1px solid var(--color-border);
+}
+
+.room-hero-daynight button.is-active {
+  color: var(--color-primary-contrast);
+  background-color: var(--color-primary);
 }
 
 /* Cards / grid ---------------------------------------------------------------- */
@@ -573,6 +675,16 @@ section {
   margin-top: 2rem;
 }
 
+/* The homepage's full-bleed hero already reaches the footer with no gap to
+   fill — the margin above is for ordinary content pages, where .main ends
+   with normal in-flow sections that want breathing room before the dark
+   footer band. Scoped to the actual condition (a full-bleed hero flush
+   against the footer) rather than a page-identity flag, so it keeps working
+   automatically if another page ever gets a hero-room-style section. */
+main:has(> .hero-room) + .site-footer {
+  margin-top: 0;
+}
+
 .footer-inner {
   padding-block: 2rem;
   text-align: center;
@@ -622,11 +734,11 @@ section {
     padding-block: 5rem;
   }
 
-  .hero h1 {
-    font-size: 2.5rem;
+  .room-hero-splash h1 {
+    font-size: 2.25rem;
   }
 
-  .hero-actions {
+  .room-hero-splash-actions {
     flex-direction: row;
     justify-content: center;
   }

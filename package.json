@@ -14,12 +14,22 @@
 	"dependencies": {
 		"@astrojs/cloudflare": "12.6.12",
 		"@astrojs/mdx": "4.3.13",
+		"@astrojs/react": "^6.0.4",
 		"@astrojs/rss": "4.0.14",
 		"@astrojs/sitemap": "3.6.1",
+		"@react-three/drei": "^10.7.8",
+		"@react-three/fiber": "^9.7.0",
+		"@react-three/postprocessing": "^3.0.5",
+		"@types/react": "^19.2.18",
+		"@types/react-dom": "^19.2.4",
 		"astro": "5.16.9",
+		"react": "^19.2.8",
+		"react-dom": "^19.2.8",
+		"three": "^0.185.1",
 		"typescript": "5.9.3"
 	},
 	"devDependencies": {
+		"@types/three": "^0.185.4",
 		"wrangler": "4.123.0"
 	},
 	"engines": {

@@ -1,33 +1,19 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import LightBeam from "../components/LightBeam.astro";
+import RoomHeroR3F from "../components/RoomHeroR3F.tsx";
 ---
 
 <Layout
   title="Matlack Electric"
   description="Matlack Electric is a premier residential electrical contractor specializing in remodels and renovations — wiring, low-voltage, custom lighting, EV charging, generators, battery backup, and Lutron smart control."
 >
-  <section class="hero">
-    <div class="light-beam" aria-hidden="true">
-      <LightBeam angle={30} originX="4rem"              moteCount={10} pulseDelay="0.0s" onDelay="0.0s" fadeInDuration="0.8s" />
-      <LightBeam angle={30} originX="calc(100% - 4rem)" moteCount={10} pulseDelay="2.3s" onDelay="0.7s" fadeInDuration="1.2s" />
-      <LightBeam angle={10} originX="7rem"              moteCount={ 5} pulseDelay="1.1s" onDelay="1.4s" fadeInDuration="1.6s" />
-    </div>
-    <div class="container">
-      <h1>Premier Electrical Craftsmanship for Your Home</h1>
-      <p>
-        From whole-home rewiring to custom lighting design, smart home
-        control, EV charging, and backup power - absolute quality on
-        every project.
-      </p>
-      <div class="hero-actions">
-        <a class="btn btn-primary" href="/contact/">Get a Quote</a>
-        <a class="btn btn-outline" href="/services/">View Services</a>
-      </div>
+  <section class="hero-room">
+    <div class="room-hero-visual">
+      <RoomHeroR3F client:only="react" />
     </div>
   </section>
 
-  <section class="container">
+  <!-- <section class="container">
     <div class="section-heading">
       <h2>What We Offer</h2>
       <p>
@@ -58,5 +44,5 @@ import LightBeam from "../components/LightBeam.astro";
         </p>
       </div>
     </div>
-  </section>
+  </section> -->
 </Layout>

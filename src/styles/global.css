@@ -352,6 +352,125 @@ section {
   align-items: center;
 }
 
+/* Controls column — only on the Controls shot: the keypad plus the
+   day/night toggle underneath it, stacked together so they read as one
+   control cluster anchored to the side of the shot (see KeypadPanel and
+   DayNightToggle in RoomHeroR3F.tsx). Not centered like the splash: these
+   are small real controls, not the visual focus of the shot — the room's
+   lighting response is. */
+.room-hero-controls {
+  position: absolute;
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 8.5rem;
+}
+
+/* No fade-in delay unlike the splash, since arriving here is already a
+   deliberate choice to use it. */
+.room-hero-keypad {
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem;
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--color-bg) 40%, transparent);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.room-hero-keypad.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.room-hero-keypad button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: none;
+  border: none;
+  border-top: 1px solid var(--color-border);
+  padding: 0.65rem 0.5rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.room-hero-keypad button:first-child {
+  border-top: none;
+}
+
+.room-hero-keypad-led {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background-color: var(--color-border);
+  flex-shrink: 0;
+}
+
+.room-hero-keypad button.is-active {
+  color: var(--color-primary);
+}
+
+.room-hero-keypad button.is-active .room-hero-keypad-led {
+  background-color: #34d399;
+}
+
+/* Day/night toggle — a segmented switch, deliberately distinct from the
+   keypad buttons above it: this isn't a 5th keypad button (a real RA3
+   keypad wouldn't have one), it's a separate override for what's visible
+   through the window. */
+.room-hero-daynight {
+  display: flex;
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--color-bg) 40%, transparent);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.room-hero-daynight.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.room-hero-daynight button {
+  flex: 1;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  background: none;
+  border: none;
+  padding: 0.5rem 0.25rem;
+  cursor: pointer;
+  text-align: center;
+}
+
+.room-hero-daynight button:first-child {
+  border-right: 1px solid var(--color-border);
+}
+
+.room-hero-daynight button.is-active {
+  color: var(--color-primary-contrast);
+  background-color: var(--color-primary);
+}
+
 /* Cards / grid ---------------------------------------------------------------- */
 
 .grid {

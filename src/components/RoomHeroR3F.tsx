@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useGLTF, Sky } from "@react-three/drei";
+import { useGLTF } from "@react-three/drei";
 import { EffectComposer, N8AO, ToneMapping } from "@react-three/postprocessing";
 import { RectAreaLightUniformsLib } from "three/addons/lights/RectAreaLightUniformsLib.js";
 
@@ -113,10 +113,15 @@ const SHOTS: Shot[] = [
 		lookAt: [0, 0.6, -5.5],
 	},
 	{
+		// Deliberately close to (not identical to) the default shot — the
+		// point of this shot is watching the room's lights actually respond
+		// to the keypad, not looking at the keypad itself (there's no 3D
+		// keypad prop at all; it's a real HTML control panel — see
+		// KeypadPanel). Starting values only; meant to be hand-tuned.
 		id: "controls",
 		label: "Controls",
-		position: [0, 0.4, -2],
-		lookAt: [-2, 1.97, -2],
+		position: [1.2, 1.1, 5.2],
+		lookAt: [0, 0.3, -3.5],
 	},
 	{
 		id: "networking",
@@ -126,7 +131,26 @@ const SHOTS: Shot[] = [
 	},
 ];
 
-function PendantLights() {
+// --- Keypad scenes -----------------------------------------------------
+// A 4-button Lutron RadioRA 3-style keypad — All On / Entertain / Relax /
+// All Off, top to bottom, matching a real RA3 keypad's typical layout. Each
+// scene sets independent levels per controlled fixture (a real Lutron scene
+// isn't a single dimmer — different zones sit at different levels within
+// the same scene), not one flat multiplier. Only the two fixtures that are
+// actually "installed lighting" are controlled — WindowLight (simulated
+// daylight) and AccessPoint (not a light at all) are left alone, same as a
+// real keypad wouldn't claim to control the sun.
+type SceneId = "allOn" | "entertain" | "relax" | "allOff";
+type ScenePreset = { id: SceneId; label: string; pendant: number; undercabinet: number };
+const SCENES: ScenePreset[] = [
+	{ id: "allOn", label: "All On", pendant: 1, undercabinet: 1 },
+	{ id: "entertain", label: "Entertain", pendant: 0.9, undercabinet: 0.55 },
+	{ id: "relax", label: "Relax", pendant: 0.3, undercabinet: 0.1 },
+	{ id: "allOff", label: "All Off", pendant: 0, undercabinet: 0 },
+];
+const DEFAULT_SCENE_ID: SceneId = "allOn";
+
+function PendantLights({ level = 1 }: { level?: number }) {
 	const targets = useMemo(() => PENDANT_HEAD_X.map(() => new THREE.Object3D()), []);
 	return (
 		<>
@@ -137,7 +161,7 @@ function PendantLights() {
 						position={[x, PENDANT_HEAD_Y, PENDANT_HEAD_Z]}
 						target={targets[i]}
 						color="#ffd9a0"
-						intensity={18}
+						intensity={18 * level}
 						distance={4}
 						angle={Math.PI / 3.5}
 						penumbra={0.6}
@@ -177,7 +201,7 @@ const UNDERCABINET_Y = 0.79;
 const UNDERCABINET_Z = -4.5;
 const UNDERCABINET_COLOR = "#ffd9a0";
 
-function UndercabinetLights() {
+function UndercabinetLights({ level = 1 }: { level?: number }) {
 	const centerX = (CABINET_X_MIN + CABINET_X_MAX) / 2;
 	return (
 		<group>
@@ -187,13 +211,14 @@ function UndercabinetLights() {
 				<meshStandardMaterial color="#cbd5e1" roughness={0.4} metalness={0.5} />
 			</mesh>
 			{/* Lens — the visible glowing line, set just proud of the housing so it
-			    isn't z-fighting with it. */}
+			    isn't z-fighting with it. Its own glow dims with `level` too — a
+			    real "off" strip doesn't stay lit just because the room light does. */}
 			<mesh position={[centerX, UNDERCABINET_Y - 0.011, UNDERCABINET_Z + 0.02]}>
 				<boxGeometry args={[CABINET_SPAN - 0.05, 0.008, 0.02]} />
 				<meshStandardMaterial
 					color={UNDERCABINET_COLOR}
 					emissive={UNDERCABINET_COLOR}
-					emissiveIntensity={2}
+					emissiveIntensity={2 * level}
 					roughness={0.3}
 				/>
 			</mesh>
@@ -203,7 +228,7 @@ function UndercabinetLights() {
 				width={CABINET_SPAN}
 				height={0.06}
 				color={UNDERCABINET_COLOR}
-				intensity={75}
+				intensity={75 * level}
 			/>
 		</group>
 	);
@@ -235,17 +260,23 @@ function AccessPoint() {
 	);
 }
 
-// Fakes daylight through the slatted wall opening on the -X side of the
-// room — a directional light standing in for a source that isn't modeled.
-function WindowLight() {
-	const target = useMemo(() => new THREE.Object3D(), []);
-	return (
-		<>
-			<primitive object={target} position={[1, 0, -1]} />
-			<directionalLight position={[-4, 1.6, -1]} target={target} color="#eaf2ff" intensity={1.4} />
-		</>
-	);
-}
+// Day/night — what's visible through the slatted window opening, and the
+// room's overall ambient fill.
+//
+// R3F's WebGLRenderer defaults to alpha: true (confirmed in its source —
+// our `gl={{ antialias: false }}` merges with that default, doesn't replace
+// it), and with <Sky/> and WindowLight both gone there's nothing setting
+// scene.background — so the transparent canvas was showing whatever's
+// behind it in the DOM (.hero's CSS background-color, a near-white
+// #f8fafc) through any unoccluded region, i.e. the open window slats. That's
+// not a lit surface, so no amount of ambientLight tuning could ever change
+// it — it was never a lighting problem. Setting an explicit
+// scene.background (via the <color> below) both fixes that and gives day/
+// night a background to actually toggle between.
+const DAY_BACKGROUND = "#dce8f2";
+const NIGHT_BACKGROUND = "#0b1220";
+const DAY_AMBIENT = 0.5 * Math.PI;
+const NIGHT_AMBIENT = 0.05 * Math.PI;
 
 function KitchenModel() {
 	const { scene } = useGLTF(KITCHEN_MODEL_URL);
@@ -367,6 +398,83 @@ function CameraRig({ shot }: { shot: Shot }) {
 // so it can fade with a CSS transition in step with the camera easing
 // instead of snapping in/out, and so focus/accessibility state isn't lost
 // each time you leave and return to the default shot.
+// The Lutron RA3-style keypad panel — real HTML buttons, not a 3D prop, so
+// the camera stays on the room and the lighting change itself is what's
+// being shown off, not a tiny hard-to-click mesh. A narrow side-anchored
+// column (not centered) for the same reason: it should read as a small,
+// real control, not the visual focus of the shot. No fade-in delay unlike
+// SplashOverlay — that delay suits a landing message easing in after the
+// scene settles, but here you clicked "Controls" specifically to get to
+// this panel, so it should show up right away.
+function KeypadPanel({
+	visible,
+	activeSceneId,
+	onSelect,
+}: {
+	visible: boolean;
+	activeSceneId: SceneId;
+	onSelect: (id: SceneId) => void;
+}) {
+	return (
+		<div className={`room-hero-keypad${visible ? " is-visible" : ""}`} aria-hidden={!visible}>
+			{SCENES.map((scene) => (
+				<button
+					key={scene.id}
+					type="button"
+					className={scene.id === activeSceneId ? "is-active" : ""}
+					onClick={() => onSelect(scene.id)}
+					tabIndex={visible ? undefined : -1}
+				>
+					<span className="room-hero-keypad-led" aria-hidden="true" />
+					{scene.label}
+				</button>
+			))}
+		</div>
+	);
+}
+
+// Sits directly under the keypad (same side-anchored column, see
+// `.room-hero-controls` in global.css) rather than as a 5th keypad button —
+// a real RA3 keypad wouldn't have a "day/night" button on it; this is a
+// separate kind of control (more like a schedule/astro override), so it
+// reads as its own small segmented switch instead of pretending to be part
+// of the keypad face.
+function DayNightToggle({
+	visible,
+	isNight,
+	onChange,
+}: {
+	visible: boolean;
+	isNight: boolean;
+	onChange: (isNight: boolean) => void;
+}) {
+	return (
+		<div
+			className={`room-hero-daynight${visible ? " is-visible" : ""}`}
+			role="group"
+			aria-label="Time of day"
+			aria-hidden={!visible}
+		>
+			<button
+				type="button"
+				className={!isNight ? "is-active" : ""}
+				onClick={() => onChange(false)}
+				tabIndex={visible ? undefined : -1}
+			>
+				Day
+			</button>
+			<button
+				type="button"
+				className={isNight ? "is-active" : ""}
+				onClick={() => onChange(true)}
+				tabIndex={visible ? undefined : -1}
+			>
+				Night
+			</button>
+		</div>
+	);
+}
+
 function SplashOverlay({ visible }: { visible: boolean }) {
 	return (
 		<div className={`room-hero-splash${visible ? " is-visible" : ""}`} aria-hidden={!visible}>
@@ -439,6 +547,9 @@ function ShotNav({
 export default function RoomHeroR3F() {
 	const [activeIndex, setActiveIndex] = useState(0);
 	const [autoAdvancing, setAutoAdvancing] = useState(SHOT_TRIGGER_MODE !== "buttons");
+	const [activeSceneId, setActiveSceneId] = useState<SceneId>(DEFAULT_SCENE_ID);
+	const [isNight, setIsNight] = useState(false);
+	const isControlsShot = SHOTS[activeIndex].id === "controls";
 
 	useEffect(() => {
 		if (SHOT_TRIGGER_MODE === "buttons" || !autoAdvancing) return;
@@ -449,11 +560,23 @@ export default function RoomHeroR3F() {
 		return () => window.clearInterval(id);
 	}, [autoAdvancing]);
 
+	// The lights only stay however the keypad left them while you're actually
+	// on the Controls shot — leaving it (to any other shot, including just
+	// passing through on the way elsewhere) puts them back to normal.
+	useEffect(() => {
+		if (!isControlsShot) {
+			setActiveSceneId(DEFAULT_SCENE_ID);
+			setIsNight(false);
+		}
+	}, [isControlsShot]);
+
 	const selectShot = (index: number) => {
 		setActiveIndex(index);
 		// "both" mode: a manual pick hands control to the visitor permanently.
 		if (SHOT_TRIGGER_MODE === "both") setAutoAdvancing(false);
 	};
+
+	const activeScene = SCENES.find((s) => s.id === activeSceneId) ?? SCENES[0];
 
 	return (
 		<>
@@ -464,22 +587,25 @@ export default function RoomHeroR3F() {
 				gl={{ antialias: false }}
 				camera={{ position: SHOTS[0].position, fov: SHOTS[0].fov ?? DEFAULT_FOV, near: 1, far: 20 }}
 			>
-				<ambientLight intensity={1.2 * Math.PI} />
-				<Sky />
+				<color attach="background" args={[isNight ? NIGHT_BACKGROUND : DAY_BACKGROUND]} />
+				<ambientLight intensity={isNight ? NIGHT_AMBIENT : DAY_AMBIENT} />
 				<CameraRig shot={SHOTS[activeIndex]} />
 				<Suspense fallback={null}>
 					<KitchenModel />
 				</Suspense>
-				<PendantLights />
-				<UndercabinetLights />
+				<PendantLights level={activeScene.pendant} />
+				<UndercabinetLights level={activeScene.undercabinet} />
 				<AccessPoint />
-				<WindowLight />
 				<EffectComposer multisampling={4}>
 					<N8AO halfRes aoSamples={5} aoRadius={0.4} distanceFalloff={0.75} intensity={1} />
 					<ToneMapping />
 				</EffectComposer>
 			</Canvas>
 			<SplashOverlay visible={SHOTS[activeIndex].id === "default"} />
+			<div className="room-hero-controls">
+				<KeypadPanel visible={isControlsShot} activeSceneId={activeSceneId} onSelect={setActiveSceneId} />
+				<DayNightToggle visible={isControlsShot} isNight={isNight} onChange={setIsNight} />
+			</div>
 			{SHOT_TRIGGER_MODE !== "auto" && <ShotNav activeIndex={activeIndex} onSelect={selectShot} />}
 		</>
 	);

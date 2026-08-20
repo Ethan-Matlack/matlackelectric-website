@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
@@ -98,7 +98,7 @@ const SHOTS: Shot[] = [
 		id: "default",
 		label: "Overview",
 		position: [0.3, 1, 6],
-		lookAt: [0, 0, -4],
+		lookAt: [0.24, 0, -4],
 	},
 	{
 		id: "shading",
@@ -278,7 +278,7 @@ const NIGHT_BACKGROUND = "#0b1220";
 const DAY_AMBIENT = 0.5 * Math.PI;
 const NIGHT_AMBIENT = 0.05 * Math.PI;
 
-function KitchenModel() {
+function KitchenModel({ onReady }: { onReady?: () => void }) {
 	const { scene } = useGLTF(KITCHEN_MODEL_URL);
 	useEffect(() => {
 		const lamp = scene.getObjectByName("lamp");
@@ -305,6 +305,14 @@ function KitchenModel() {
 			}
 		});
 	}, [scene]);
+	// Fires once the model has actually been in a painted frame, not just
+	// mounted into the tree (mounting happens before the browser paints) —
+	// that's the signal the poster crossfade (see RoomHeroR3F below) waits
+	// on so it doesn't swap in a still-empty canvas.
+	useEffect(() => {
+		const raf = requestAnimationFrame(() => onReady?.());
+		return () => cancelAnimationFrame(raf);
+	}, [onReady]);
 	return <primitive object={scene} rotation={[0, Math.PI / 2, 0]} position={[0, -1, -0.85]} />;
 }
 useGLTF.preload(KITCHEN_MODEL_URL);
@@ -487,9 +495,9 @@ function SplashOverlay({ visible }: { visible: boolean }) {
 				<a className="btn btn-primary" href="/contact/" tabIndex={visible ? undefined : -1}>
 					Get a Quote
 				</a>
-				<a className="btn btn-outline" href="/services/" tabIndex={visible ? undefined : -1}>
+				{/* <a className="btn btn-outline" href="/services/" tabIndex={visible ? undefined : -1}>
 					View Services
-				</a>
+				</a> */}
 			</div>
 		</div>
 	);
@@ -549,6 +557,10 @@ export default function RoomHeroR3F() {
 	const [autoAdvancing, setAutoAdvancing] = useState(SHOT_TRIGGER_MODE !== "buttons");
 	const [activeSceneId, setActiveSceneId] = useState<SceneId>(DEFAULT_SCENE_ID);
 	const [isNight, setIsNight] = useState(false);
+	const [isSceneReady, setIsSceneReady] = useState(false);
+	// Stable reference — KitchenModel's onReady effect keys off this, and an
+	// inline arrow here would re-fire it on every unrelated re-render.
+	const handleSceneReady = useCallback(() => setIsSceneReady(true), []);
 	const isControlsShot = SHOTS[activeIndex].id === "controls";
 
 	useEffect(() => {
@@ -580,27 +592,33 @@ export default function RoomHeroR3F() {
 
 	return (
 		<>
-			<Canvas
-				flat
-				shadows
-				dpr={[1, 1.5]}
-				gl={{ antialias: false }}
-				camera={{ position: SHOTS[0].position, fov: SHOTS[0].fov ?? DEFAULT_FOV, near: 1, far: 20 }}
-			>
-				<color attach="background" args={[isNight ? NIGHT_BACKGROUND : DAY_BACKGROUND]} />
-				<ambientLight intensity={isNight ? NIGHT_AMBIENT : DAY_AMBIENT} />
-				<CameraRig shot={SHOTS[activeIndex]} />
-				<Suspense fallback={null}>
-					<KitchenModel />
-				</Suspense>
-				<PendantLights level={activeScene.pendant} />
-				<UndercabinetLights level={activeScene.undercabinet} />
-				<AccessPoint />
-				<EffectComposer multisampling={4}>
-					<N8AO halfRes aoSamples={5} aoRadius={0.4} distanceFalloff={0.75} intensity={1} />
-					<ToneMapping />
-				</EffectComposer>
-			</Canvas>
+			{/* Fades in over the static poster baked into .hero-room's CSS
+			    background (see global.css) once the model has actually painted a
+			    frame — before that, the poster is what's visible, so there's never
+			    a blank flash while the ~2MB GLB downloads and parses. */}
+			<div className={`room-hero-canvas-wrap${isSceneReady ? " is-ready" : ""}`}>
+				<Canvas
+					flat
+					shadows
+					dpr={[1, 1.5]}
+					gl={{ antialias: false }}
+					camera={{ position: SHOTS[0].position, fov: SHOTS[0].fov ?? DEFAULT_FOV, near: 1, far: 20 }}
+				>
+					<color attach="background" args={[isNight ? NIGHT_BACKGROUND : DAY_BACKGROUND]} />
+					<ambientLight intensity={isNight ? NIGHT_AMBIENT : DAY_AMBIENT} />
+					<CameraRig shot={SHOTS[activeIndex]} />
+					<Suspense fallback={null}>
+						<KitchenModel onReady={handleSceneReady} />
+					</Suspense>
+					<PendantLights level={activeScene.pendant} />
+					<UndercabinetLights level={activeScene.undercabinet} />
+					<AccessPoint />
+					<EffectComposer multisampling={4}>
+						<N8AO halfRes aoSamples={5} aoRadius={0.4} distanceFalloff={0.75} intensity={1} />
+						<ToneMapping />
+					</EffectComposer>
+				</Canvas>
+			</div>
 			<SplashOverlay visible={SHOTS[activeIndex].id === "default"} />
 			<div className="room-hero-controls">
 				<KeypadPanel visible={isControlsShot} activeSceneId={activeSceneId} onSelect={setActiveSceneId} />

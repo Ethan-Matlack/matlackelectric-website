@@ -19,6 +19,12 @@
   --radius: 6px;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
   --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.10);
+
+  /* .site-header is sticky, in normal flow above <main> — not overlaid —
+     so anything sized against 100svh (namely .hero-room) needs to subtract
+     this to actually fit in one screen. Kept in sync with .header-inner's
+     min-height below. */
+  --header-height: 4rem;
 }
 
 /* Reset ------------------------------------------------------------------ */
@@ -144,6 +150,7 @@ section {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: var(--header-height);
   padding-block: 0.9rem;
   position: relative;
 }
@@ -239,26 +246,59 @@ section {
 .hero {
   position: relative;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 50svh;
-  min-height: 16rem;
   background-color: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   text-align: center;
   padding-block: 3rem;
 }
 
-/* Room hero — a react-three-fiber scene filling the hero section. See
-   RoomHeroR3F.tsx for the scene itself; this is layout/chrome only.
-   .room-hero-visual gives R3F's <Canvas> (which fills 100%/100% of its
-   parent by default) a positioned, sized box to fill within .hero. */
+/* Homepage hero — the full-viewport interactive react-three-fiber scene
+   (see RoomHeroR3F.tsx). Deliberately its own class rather than a .hero
+   variant: every other page's .hero is a short text banner sized by its
+   content, while this is meant to fill the viewport, so sharing height
+   rules between them would fight. .room-hero-visual gives R3F's <Canvas>
+   (which fills 100%/100% of its parent by default) a positioned, sized box
+   to fill within .hero-room. */
+.hero-room {
+  position: relative;
+  overflow: hidden;
+  height: calc(100svh - var(--header-height));
+  min-height: 24rem;
+  border-bottom: 1px solid var(--color-border);
+  /* Static screenshot of the default shot's scene ONLY (no splash text or
+     nav baked in — those are real DOM, sized by real CSS, and would scale
+     wrong as raster pixels under background-size:cover at any viewport
+     other than the one it was captured at). Visible immediately since it's
+     a CSS background, not JS, so there's no blank flash while
+     client:only="react" hydrates and the ~2MB GLB downloads.
+     .room-hero-canvas-wrap below fades the real scene in on top of it once
+     ready — see RoomHeroR3F.tsx. The splash/nav appear as normal React DOM
+     shortly after hydration, independent of the scene's own readiness. */
+  background-image: url("/images/hero-poster.jpg");
+  background-size: cover;
+  background-position: center;
+}
 
 .room-hero-visual {
   position: absolute;
   inset: 0;
   z-index: 0;
+}
+
+/* Hidden over the poster until isSceneReady flips, then an instant swap —
+   no fade/blur transition. The poster now matches the live frame closely
+   enough that animating the swap only drew attention to it; a straight cut
+   between two near-identical frames reads as nothing happening at all.
+   Still gated on isSceneReady (not a fixed page-load timer) so a slow GLB
+   fetch can never reveal an empty, geometry-less room. */
+.room-hero-canvas-wrap {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.room-hero-canvas-wrap.is-ready {
+  opacity: 1;
 }
 
 .room-hero-shots {
@@ -633,6 +673,16 @@ section {
   background-color: var(--color-primary-dark);
   color: #cbd5e1;
   margin-top: 2rem;
+}
+
+/* The homepage's full-bleed hero already reaches the footer with no gap to
+   fill — the margin above is for ordinary content pages, where .main ends
+   with normal in-flow sections that want breathing room before the dark
+   footer band. Scoped to the actual condition (a full-bleed hero flush
+   against the footer) rather than a page-identity flag, so it keeps working
+   automatically if another page ever gets a hero-room-style section. */
+main:has(> .hero-room) + .site-footer {
+  margin-top: 0;
 }
 
 .footer-inner {

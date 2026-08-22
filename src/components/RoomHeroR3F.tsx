@@ -495,9 +495,6 @@ function SplashOverlay({ visible }: { visible: boolean }) {
 				<a className="btn btn-primary" href="/contact/" tabIndex={visible ? undefined : -1}>
 					Get a Quote
 				</a>
-				{/* <a className="btn btn-outline" href="/services/" tabIndex={visible ? undefined : -1}>
-					View Services
-				</a> */}
 			</div>
 		</div>
 	);

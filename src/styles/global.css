@@ -1,6 +1,26 @@
-/* ==========================================================================
+/* =============================================================================
    Matlack Electric — Base Styles
-   ========================================================================== */
+
+   Table of contents:
+     1. Design tokens (:root)
+     2. Reset
+     3. Layout helpers
+     4. Buttons
+     5. Header / Navigation
+     6. Hero (text-banner pages)
+     7. Homepage 3D hero (RoomHeroR3F.tsx)
+     8. Cards, grid & small UI bits
+     9. Contact form (JobTread embed)
+     10. Section headings
+     11. Notice / placeholder boxes
+     12. Detail pages — shared mechanics (ServiceLayout + CaseStudyLayout)
+     13. Service pages — pricing
+     14. Case studies (portfolio)
+     15. Footer
+     16. Desktop breakpoint (min-width: 768px)
+
+/* ============================================================================= */
+/* 1. Design tokens ------------------------------------------------------------ */
 
 :root {
   --color-bg: #ffffff;
@@ -11,7 +31,7 @@
   --color-primary: #334155;
   --color-primary-dark: #1e293b;
   --color-primary-contrast: #ffffff;
-  --color-accent: #475569;
+  --color-accent: #475569; /* defined, currently unused anywhere */
 
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
@@ -27,7 +47,8 @@
   --header-height: 4rem;
 }
 
-/* Reset ------------------------------------------------------------------ */
+/* ============================================================================= */
+/* 2. Reset -------------------------------------------------------------------- */
 
 *,
 *::before,
@@ -65,7 +86,7 @@ body {
    children of body — main grows to fill any leftover vertical space, which
    pushes the footer to the bottom of the viewport on short pages without
    pinning it in place (it still flows after content normally on tall
-   pages). ----------------------------------------------------------- */
+   pages). */
 main {
   flex: 1;
 }
@@ -99,7 +120,8 @@ ul {
   padding: 0;
 }
 
-/* Layout helpers ----------------------------------------------------------- */
+/* ============================================================================= */
+/* 3. Layout helpers ----------------------------------------------------------- */
 
 .container {
   width: 100%;
@@ -112,7 +134,8 @@ section {
   padding-block: 2.5rem;
 }
 
-/* Buttons ------------------------------------------------------------------ */
+/* ============================================================================= */
+/* 4. Buttons ------------------------------------------------------------------ */
 
 .btn {
   display: inline-block;
@@ -146,7 +169,8 @@ section {
   color: var(--color-primary-contrast);
 }
 
-/* Header / Navigation -------------------------------------------------------- */
+/* ============================================================================= */
+/* 5. Header / Navigation ------------------------------------------------------ */
 
 .site-header {
   border-bottom: 1px solid var(--color-border);
@@ -172,6 +196,8 @@ section {
   text-decoration: none;
 }
 
+/* Hamburger button, mobile only — hidden at the desktop breakpoint below,
+   where .site-nav switches to a plain inline row instead. */
 .nav-toggle {
   display: flex;
   flex-direction: column;
@@ -190,6 +216,7 @@ section {
   outline-offset: 6px;
 }
 
+/* The three hamburger bars: one real <span>, two pseudo-elements. */
 .nav-toggle span,
 .nav-toggle::before,
 .nav-toggle::after {
@@ -201,6 +228,10 @@ section {
   border-radius: 2px;
 }
 
+/* Mobile: a collapsible dropdown under the header, toggled open/closed via
+   .is-open (added/removed by Header.astro's own script). Becomes a plain
+   static row at the desktop breakpoint — see the media query at the
+   bottom of this file. */
 .site-nav {
   position: absolute;
   top: 100%;
@@ -251,8 +282,13 @@ section {
   font-weight: 700;
 }
 
-/* Hero ---------------------------------------------------------------------- */
+/* ============================================================================= */
+/* 6. Hero (text-banner pages) ------------------------------------------------- */
 
+/* The plain, short banner used by every page except the homepage — a
+   heading and a line of copy over a flat background, sized by its own
+   content (padding only, no forced height). See section 7 below for the
+   homepage's very different full-viewport hero. */
 .hero {
   position: relative;
   overflow: hidden;
@@ -262,13 +298,22 @@ section {
   padding-block: 3rem;
 }
 
-/* Homepage hero — the full-viewport interactive react-three-fiber scene
-   (see RoomHeroR3F.tsx). Deliberately its own class rather than a .hero
-   variant: every other page's .hero is a short text banner sized by its
-   content, while this is meant to fill the viewport, so sharing height
-   rules between them would fight. .room-hero-visual gives R3F's <Canvas>
-   (which fills 100%/100% of its parent by default) a positioned, sized box
-   to fill within .hero-room. */
+/* ============================================================================= */
+/* 7. Homepage 3D hero (RoomHeroR3F.tsx) ---------------------------------------
+   The interactive react-three-fiber kitchen scene that fills the homepage's
+   hero section. Everything in this section is layout/chrome for that
+   component — the scene itself lives in RoomHeroR3F.tsx. Rough map of the
+   pieces below: .hero-room (outer section) → .room-hero-visual (canvas
+   positioning box) → .room-hero-canvas-wrap (fade-in wrapper around the
+   <Canvas>) → .room-hero-shots (camera shot nav pills), .room-hero-splash
+   (landing text, default shot only), .room-hero-controls (keypad + day/night
+   toggle, Controls shot only). */
+
+/* Deliberately its own class rather than a .hero variant: unlike every
+   other page's short text banner, this is meant to fill the viewport, so
+   sharing height rules between them would fight. .room-hero-visual gives
+   R3F's <Canvas> (which fills 100%/100% of its parent by default) a
+   positioned, sized box to fill within .hero-room. */
 .hero-room {
   position: relative;
   overflow: hidden;
@@ -311,6 +356,8 @@ section {
   opacity: 1;
 }
 
+/* Camera shot nav — the pill row for switching between preset camera
+   angles (Overview, Shading, Lighting, Controls, Networking). */
 .room-hero-shots {
   position: absolute;
   left: 50%;
@@ -420,8 +467,9 @@ section {
   width: 8.5rem;
 }
 
-/* No fade-in delay unlike the splash, since arriving here is already a
-   deliberate choice to use it. */
+/* Mimics a 4-button Lutron RadioRA 3 keypad (All On / Entertain / Relax /
+   All Off). No fade-in delay unlike the splash, since arriving here is
+   already a deliberate choice to use it. */
 .room-hero-keypad {
   display: flex;
   flex-direction: column;
@@ -521,7 +569,8 @@ section {
   background-color: var(--color-primary);
 }
 
-/* Cards / grid ---------------------------------------------------------------- */
+/* ============================================================================= */
+/* 8. Cards, grid & small UI bits ---------------------------------------------- */
 
 .grid {
   display: grid;
@@ -563,6 +612,8 @@ section {
   color: inherit;
 }
 
+/* Small uppercase pill label. Carried over from the starter template —
+   currently not used anywhere on the site. */
 .badge {
   display: inline-block;
   padding: 0.25em 0.75em;
@@ -576,17 +627,21 @@ section {
   margin-bottom: 0.75rem;
 }
 
+/* The Lutron/Tesla/Generac certification logos on the Partners page. */
 .partner-logo {
   width: 100%;
   height: auto;
   margin-bottom: 1rem;
 }
 
-/* Contact form — styling around a third-party embed (JobTread). The form's
-   data-jobtread-web-form/data-key attributes, every input's name attribute,
-   and the submit button's data-submit-button attribute are hooks the
-   embed's own script relies on to find and wire up the form — layout and
-   color only below, nothing structural. --------------------------------- */
+/* ============================================================================= */
+/* 9. Contact form (JobTread embed) -------------------------------------------- */
+
+/* Styling around a third-party embed. The form's data-jobtread-web-form /
+   data-key attributes, every input's name attribute, and the submit
+   button's data-submit-button attribute are hooks the embed's own script
+   relies on to find and wire up the form — layout and color only below,
+   nothing structural. */
 
 .contact-form {
   max-width: 32rem;
@@ -670,8 +725,11 @@ section {
   justify-content: flex-end;
 }
 
-/* Section headings ---------------------------------------------------------- */
+/* ============================================================================= */
+/* 10. Section headings -------------------------------------------------------- */
 
+/* Centered intro block (h2 + a line of muted copy) used above a .grid or
+   similar content block, on About/Partners/Services/etc. */
 .section-heading {
   text-align: center;
   max-width: 50ch;
@@ -684,8 +742,11 @@ section {
   margin-bottom: 0;
 }
 
-/* Placeholder / notice boxes -------------------------------------------------- */
+/* ============================================================================= */
+/* 11. Notice / placeholder boxes ---------------------------------------------- */
 
+/* Dashed-border callout box — used both for real CTAs (e.g. "Get a Quote"
+   at the bottom of a page) and for placeholder/no-content states. */
 .notice {
   background-color: var(--color-surface);
   border: 1px dashed var(--color-border);
@@ -694,16 +755,19 @@ section {
   color: var(--color-muted);
 }
 
-/* Detail pages (src/pages/services/*, src/pages/portfolio/* — ServiceLayout
-   and CaseStudyLayout) -------------------------------------------------- */
+/* ============================================================================= */
+/* 12. Detail pages — shared mechanics -----------------------------------------
+   Shared by both "detail page with a back button" layouts — ServiceLayout
+   (src/pages/services/*) and CaseStudyLayout (src/pages/portfolio/*) — via
+   the BackToIndexFab component and the .prose text column. Section 13
+   (pricing) is Service-page-only; section 14 (case studies) is
+   portfolio-only. */
 
-/* Shared by any "detail page with a back button" layout, via the
-   BackToIndexFab component. Containing block for the button's
-   .is-above-footer (position: absolute)
-   state below. min-height: 100% (against .main's flex-computed height)
-   means even a short page's wrap still reaches all the way down to where
-   the footer begins, so "just above the footer" is correct regardless of
-   how much content the page has. */
+/* Containing block for .detail-back-fab's .is-above-footer (position:
+   absolute) state below. min-height: 100% (against .main's flex-computed
+   height) means even a short page's wrap still reaches all the way down to
+   where the footer begins, so "just above the footer" is correct
+   regardless of how much content the page has. */
 .detail-page-wrap {
   position: relative;
   min-height: 100%;
@@ -768,6 +832,11 @@ section {
   margin-bottom: 0;
 }
 
+/* ============================================================================= */
+/* 13. Service pages — pricing ------------------------------------------------- */
+
+/* The "Pricing" section on a ServiceLayout page — a bordered list of
+   label/price/note rows built from a service's `pricing` prop. */
 .pricing-list {
   max-width: 65ch;
   margin-inline: auto;
@@ -819,7 +888,8 @@ section {
   margin-bottom: 0;
 }
 
-/* Case studies (src/pages/portfolio/*, CaseStudyLayout.astro) -------------
+/* ============================================================================= */
+/* 14. Case studies (portfolio) ------------------------------------------------
    Deliberately loose rather than a rigid set of typed sections — projects
    vary in photo count and story, so this is a handful of reusable blocks
    (full image, image+text split, testimonial) meant to be mixed freely in
@@ -856,6 +926,9 @@ section {
   text-align: center;
 }
 
+/* Image + text pair. Single column (stacked) by default; becomes a real
+   two-column layout at the desktop breakpoint below, where .reverse also
+   flips which side the image sits on. */
 .case-study-split {
   display: grid;
   grid-template-columns: 1fr;
@@ -901,7 +974,8 @@ section {
   color: var(--color-muted);
 }
 
-/* Footer ---------------------------------------------------------------------- */
+/* ============================================================================= */
+/* 15. Footer ------------------------------------------------------------------ */
 
 .site-footer {
   background-color: var(--color-primary-dark);
@@ -921,11 +995,16 @@ section {
   color: #ffffff;
 }
 
-/* ==========================================================================
-   Desktop breakpoint
-   ========================================================================== */
+/* ============================================================================= */
+/* 16. Desktop breakpoint ------------------------------------------------------
+   One combined block for every component's desktop-only overrides, grouped
+   below in the same order as their base rules above (sections 5–15), rather
+   than a separate @media block per component — makes it easy to scan
+   everything that changes at this breakpoint in one place. */
 
 @media (min-width: 768px) {
+  /* Header / Navigation — hamburger goes away, .site-nav becomes a plain
+     inline row instead of a collapsible dropdown. */
   .nav-toggle {
     display: none;
   }
@@ -953,10 +1032,12 @@ section {
     padding: 0.25rem 0;
   }
 
+  /* Hero (text-banner pages) */
   .hero {
     padding-block: 5rem;
   }
 
+  /* Homepage 3D hero — landing splash */
   .room-hero-splash h1 {
     font-size: 2.25rem;
   }
@@ -966,10 +1047,12 @@ section {
     justify-content: center;
   }
 
+  /* Cards & grid */
   .grid {
     grid-template-columns: repeat(3, 1fr);
   }
 
+  /* Case studies */
   .case-study-split {
     grid-template-columns: 1fr 1fr;
     gap: 2.5rem;
@@ -979,6 +1062,7 @@ section {
     order: 2;
   }
 
+  /* Footer */
   .footer-inner {
     display: flex;
     justify-content: space-between;

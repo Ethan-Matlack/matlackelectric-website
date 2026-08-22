@@ -1,5 +1,6 @@
 ---
 import Layout from "./Layout.astro";
+import BackToIndexFab from "../components/BackToIndexFab.astro";
 
 export type PricingBracket = {
 	label: string;
@@ -20,11 +21,11 @@ const { title, description, serviceName, tagline, pricing } = Astro.props;
 
 <Layout title={title} description={description}>
 	<!-- Wraps everything on the page (stretched to at least fill .main via
-	     min-height: 100% in CSS) so the back button below has a containing
-	     block that ends exactly where the footer begins — see the
-	     .is-above-footer rule and the script at the bottom for why that
+	     min-height: 100% in CSS) so BackToIndexFab has a containing block
+	     that ends exactly where the footer begins — see
+	     .detail-back-fab.is-above-footer in global.css for why that
 	     matters. -->
-	<div class="service-page-wrap">
+	<div class="detail-page-wrap">
 		<section class="hero">
 			<div class="container">
 				<h1>{serviceName}</h1>
@@ -73,30 +74,6 @@ const { title, description, serviceName, tagline, pricing } = Astro.props;
 			</div>
 		</section>
 
-		<!-- Fixed by default (reachable without scrolling, from anywhere on the
-		     page — the whole point, especially on mobile where these pages can
-		     run long), but switches to absolute positioning — anchored to
-		     .service-page-wrap, right where the footer begins — once the
-		     footer is about to enter the viewport, so it comes to rest above
-		     the footer instead of floating on top of it. -->
-		<a class="service-back-fab" href="/services/">&larr; All Services</a>
+		<BackToIndexFab href="/services/" label="All Services" />
 	</div>
-
-	<script>
-		const fab = document.querySelector<HTMLAnchorElement>(".service-back-fab");
-		const footer = document.querySelector(".site-footer");
-		if (fab && footer) {
-			// Positive bottom rootMargin makes the observed area extend past the
-			// real viewport edge, so this fires slightly before the footer is
-			// actually visible — enough buffer to swap positioning modes before
-			// there's any visible overlap or jump.
-			const observer = new IntersectionObserver(
-				([entry]) => {
-					fab.classList.toggle("is-above-footer", entry.isIntersecting);
-				},
-				{ rootMargin: "0px 0px 96px 0px" },
-			);
-			observer.observe(footer);
-		}
-	</script>
 </Layout>

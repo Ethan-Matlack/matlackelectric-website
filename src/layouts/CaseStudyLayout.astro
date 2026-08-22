@@ -1,0 +1,66 @@
+---
+import Layout from "./Layout.astro";
+import BackToIndexFab from "../components/BackToIndexFab.astro";
+
+export type Testimonial = {
+	quote: string;
+	author: string;
+	role?: string;
+};
+
+interface Props {
+	title: string;
+	description: string;
+	projectName: string;
+	tagline: string;
+	testimonial?: Testimonial;
+}
+
+const { title, description, projectName, tagline, testimonial } = Astro.props;
+---
+
+<Layout title={title} description={description}>
+	<!-- Wraps everything on the page so BackToIndexFab has a containing block
+	     that ends exactly where the footer begins — see .detail-page-wrap in
+	     global.css. -->
+	<div class="detail-page-wrap">
+		<section class="hero">
+			<div class="container">
+				<h1>{projectName}</h1>
+				<p>{tagline}</p>
+			</div>
+		</section>
+
+		<!-- Deliberately just a slot, not a fixed set of typed sections — each
+		     project has a different number of photos and a different story to
+		     tell. Build it up freely with .case-study-image and
+		     .case-study-split blocks (see global.css), mixed with plain
+		     paragraphs, in whatever order fits this particular project. -->
+		<section class="container">
+			<div class="prose case-study-body">
+				<slot />
+			</div>
+		
+		{
+			testimonial && (
+					<blockquote class="case-study-testimonial">
+						<p>&ldquo;{testimonial.quote}&rdquo;</p>
+						<footer>
+							{testimonial.author}
+							{testimonial.role && <span class="case-study-testimonial-role"> — {testimonial.role}</span>}
+						</footer>
+					</blockquote>
+			)
+		}
+		</section>
+
+		<section class="container">
+			<div class="notice">
+				<p>Have a similar project in mind? Let's talk through what it'd take.</p>
+				<a class="btn btn-primary" href="/contact/">Get a Quote</a>
+			</div>
+		</section>
+
+		<BackToIndexFab href="/portfolio/" label="Portfolio" />
+	</div>
+</Layout>

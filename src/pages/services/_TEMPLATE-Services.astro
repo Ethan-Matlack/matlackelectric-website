@@ -1,0 +1,59 @@
+---
+import ServiceLayout, {
+	type PricingBracket,
+} from "../../layouts/ServiceLayout.astro";
+
+// PLACEHOLDER PRICING -- not real numbers, adjust before this page goes live.
+const pricing: PricingBracket[] = [
+	{
+		label: "PRICING ITEM 1",
+		price: "$X,XXX",
+		note: "One-sentence note about this pricing item.",
+	},
+	{
+		label: "PRICING ITEM 2",
+		price: "$X,XXX",
+		note: "One-sentence note about this pricing item.",
+	},
+	{
+		label: "PRICING ITEM 3",
+		price: "$X,XXX",
+		note: "One-sentence note about this pricing item.",
+	},
+];
+---
+
+<!-- Description is for the meta tag and the tile's blurb on the services page. Tagline -->
+<!-- is for the hero section within the service page. Comment out or delete the pricing -->
+<!-- prop (and the array above) if this service doesn't have set pricing brackets. -->
+<ServiceLayout
+	title="SERVICE NAME | Matlack Electric"
+	description="SERVICE DESCRIPTION"
+	serviceName="SERVICE NAME"
+	tagline="SERVICE TAGLINE"
+	pricing={pricing}
+>
+	<ul>
+		<li>
+			CAPABILITY 1: lorem ipsum dolor sit amet consectetur adipiscing elit
+			sit amet voluptas eligendi et elit fugiat id omnis est minim aut
+			voluptas
+		</li>
+		<li>
+			CAPABILITY 2: lorem ipsum dolor sit amet consectetur adipiscing elit
+			eu fugiat sed excepteur et excepteur assumenda aute fuga occaecat
+		</li>
+		<li>
+			CAPABILITY 3: lorem ipsum dolor sit amet consectetur adipiscing elit
+			eu fugiat sed excepteur et excepteur assumenda aute fuga occaecat
+		</li>
+		<li>
+			CAPABILITY 4: lorem ipsum dolor sit amet consectetur adipiscing elit
+			eu fugiat sed excepteur et excepteur assumenda aute fuga occaecat
+		</li>
+		<li>
+			CAPABILITY 5: lorem ipsum dolor sit amet consectetur adipiscing elit
+			eu fugiat sed excepteur et excepteur assumenda aute fuga occaecat
+		</li>
+	</ul>
+</ServiceLayout>

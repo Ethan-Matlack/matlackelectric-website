@@ -37,6 +37,16 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Scrollbar hidden site-wide, per request — scrolling itself still works
+     via wheel/trackpad/touch/keyboard, this only removes the visual track
+     and thumb. Trade-off: no "how far down the page am I" cue for anyone
+     relying on the thumb's position. */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge/IE */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Chromium-based Edge */
 }
 
 body {
@@ -536,6 +546,23 @@ section {
   margin-bottom: 0;
 }
 
+/* Modifier for a .card that's a whole clickable link (e.g. the Services
+   tiles) rather than static content — resets link defaults and adds a
+   hover/focus cue so it still reads as a "card" first, "link" second. */
+.card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.card-link:hover,
+.card-link:focus {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  color: inherit;
+}
+
 .badge {
   display: inline-block;
   padding: 0.25em 0.75em;
@@ -667,22 +694,124 @@ section {
   color: var(--color-muted);
 }
 
+/* Service detail pages (src/pages/services/*, ServiceLayout.astro) --------- */
+
+/* Containing block for the button's .is-above-footer (position: absolute)
+   state below. min-height: 100% (against .main's flex-computed height)
+   means even a short page's wrap still reaches all the way down to where
+   the footer begins, so "just above the footer" is correct regardless of
+   how much content the page has. */
+.service-page-wrap {
+  position: relative;
+  min-height: 100%;
+}
+
+/* Fixed by default - always reachable without scrolling, from anywhere on
+   the page (the point, per the brief: these pages can run long, especially
+   on mobile). A tiny IntersectionObserver in ServiceLayout.astro swaps this
+   to .is-above-footer (position: absolute, anchored to .service-page-wrap
+   instead of the viewport) once the footer is about to scroll into view,
+   so it comes to rest just above the footer instead of floating on top of
+   it - position: sticky alone can't do this: a sticky element only
+   "catches" as you scroll toward its own place in the document, so placed
+   at the end of a long page it would stay invisible for the entire middle
+   of the page instead of being reachable the whole time. */
+.service-back-fab {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.1rem;
+  border-radius: 999px;
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: var(--shadow-md);
+  transition: background-color 0.15s ease;
+}
+
+.service-back-fab.is-above-footer {
+  position: absolute;
+}
+
+.service-back-fab:hover,
+.service-back-fab:focus {
+  background-color: var(--color-primary-dark);
+  color: var(--color-primary-contrast);
+}
+
+/* Body copy for the "What This Covers" slot — narrower than .container so
+   paragraphs and lists stay readable, matching the "simple, readable" brief
+   these pages are built around. */
+.prose {
+  max-width: 65ch;
+  margin-inline: auto;
+}
+
+.prose ul {
+  margin-bottom: 1em;
+  padding-left: 1.25em;
+}
+
+.prose li {
+  margin-bottom: 0.4em;
+}
+
+.prose li:last-child {
+  margin-bottom: 0;
+}
+
+.pricing-list {
+  max-width: 65ch;
+  margin-inline: auto;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.pricing-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.pricing-row:first-child {
+  border-top: none;
+}
+
+.pricing-label {
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.pricing-note {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin-bottom: 0;
+}
+
+.pricing-price {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-align: right;
+  margin-bottom: 0;
+}
+
 /* Footer ---------------------------------------------------------------------- */
 
 .site-footer {
   background-color: var(--color-primary-dark);
   color: #cbd5e1;
-  margin-top: 2rem;
-}
-
-/* The homepage's full-bleed hero already reaches the footer with no gap to
-   fill — the margin above is for ordinary content pages, where .main ends
-   with normal in-flow sections that want breathing room before the dark
-   footer band. Scoped to the actual condition (a full-bleed hero flush
-   against the footer) rather than a page-identity flag, so it keeps working
-   automatically if another page ever gets a hero-room-style section. */
-main:has(> .hero-room) + .site-footer {
-  margin-top: 0;
 }
 
 .footer-inner {

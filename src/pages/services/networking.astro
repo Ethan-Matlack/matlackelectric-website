@@ -1,0 +1,40 @@
+---
+import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
+
+// PLACEHOLDER PRICING — not real numbers. Replace before this page goes
+// live; "$X,XXX" is deliberate so it can't be mistaken for a real price.
+const pricing: PricingBracket[] = [
+	{
+		label: "WiFi coverage assessment + access point install",
+		price: "Starting at $X,XXX",
+		note: "Fixing dead zones in an existing home.",
+	},
+	{
+		label: "Structured wiring, per room",
+		price: "Starting at $XXX",
+		note: "Cat6 runs during a renovation's rough-in phase.",
+	},
+	{
+		label: "Full network build-out",
+		price: "Starting at $X,XXX",
+		note: "Rack, switches, and access points for whole-home coverage.",
+	},
+];
+---
+
+<ServiceLayout
+	title="Low-Voltage, Data & Network | Matlack Electric"
+	description="Structured wiring and Ubiquiti UniFi network design for renovations — wired drops and WiFi that actually reaches every room."
+	serviceName="Low-Voltage, Data & Network"
+	tagline="Structured wiring, home networking, and whole-house WiFi design."
+	pricing={pricing}
+>
+	<ul>
+		<li>Structured cabling (Cat6/Cat6a) run to the rooms that need it, not just wherever's convenient.</li>
+		<li>Ubiquiti UniFi network design — access points, switches, and a router that covers the whole home.</li>
+		<li>Wired drops for streaming, gaming, and home office setups that WiFi alone can't handle.</li>
+		<li>Low-voltage rough-in coordinated with your renovation's framing and drywall schedule.</li>
+		<li>Network racks and patch panels sized and mounted cleanly, not an afterthought closet.</li>
+		<li>Future-proofed for smart home, security cameras, and AV systems.</li>
+	</ul>
+</ServiceLayout>

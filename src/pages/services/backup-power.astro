@@ -1,0 +1,40 @@
+---
+import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
+
+// PLACEHOLDER PRICING — not real numbers. Replace before this page goes
+// live; "$X,XXX" is deliberate so it can't be mistaken for a real price.
+const pricing: PricingBracket[] = [
+	{
+		label: "Transfer switch only",
+		price: "Starting at $X,XXX",
+		note: "Generator already owned — install and hookup only.",
+	},
+	{
+		label: "Standard whole-home standby generator",
+		price: "Starting at $X,XXX",
+		note: "Generator, transfer switch, and install for an average-size home.",
+	},
+	{
+		label: "Larger home / higher capacity system",
+		price: "Starting at $X,XXX",
+		note: "Bigger homes or higher electrical loads.",
+	},
+];
+---
+
+<ServiceLayout
+	title="Standby Generators | Matlack Electric"
+	description="Generac certified standby generator installation — sizing, transfer switches, and setup to Generac's standards, so your warranty stays intact."
+	serviceName="Standby Generators"
+	tagline="Whole-home backup power for peace of mind, whatever the weather."
+	pricing={pricing}
+>
+	<ul>
+		<li>Generac certified installation and sizing.</li>
+		<li>Automatic transfer switch installation.</li>
+		<li>Load calculations to size the generator correctly for your home.</li>
+		<li>Gas line coordination with your plumber or gas utility where needed.</li>
+		<li>Permitting and inspection handled as part of the job.</li>
+		<li>Maintenance guidance to keep your warranty intact.</li>
+	</ul>
+</ServiceLayout>

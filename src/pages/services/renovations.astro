@@ -1,0 +1,40 @@
+---
+import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
+
+// PLACEHOLDER PRICING — not real numbers. Replace before this page goes
+// live; "$X,XXX" is deliberate so it can't be mistaken for a real price.
+const pricing: PricingBracket[] = [
+	{
+		label: "Panel upgrade (100A to 200A)",
+		price: "Starting at $X,XXX",
+		note: "Common for older homes taking on more electrical load.",
+	},
+	{
+		label: "Partial rewire",
+		price: "Starting at $X,XXX",
+		note: "New circuits and outlets for a remodeled room or addition.",
+	},
+	{
+		label: "Whole-home rewire",
+		price: "Starting at $X,XXX",
+		note: "Full gut renovations — scope varies with home size and access.",
+	},
+];
+---
+
+<ServiceLayout
+	title="Renovations & Remodels | Matlack Electric"
+	description="Whole-home rewiring, panel upgrades, and circuits built for renovation-scale projects — coordinated with your renovation's timeline, not fought against it."
+	serviceName="Renovations & Remodels"
+	tagline="Whole-home rewiring, panel upgrades, and circuits built for renovation-scale projects."
+	pricing={pricing}
+>
+	<ul>
+		<li>Full or partial home rewiring for gut renovations and additions.</li>
+		<li>Electrical panel upgrades and service capacity increases.</li>
+		<li>New circuits planned around your final floor plan, not just the walls that already exist.</li>
+		<li>Code-compliant rough-in coordinated with your general contractor's renovation timeline.</li>
+		<li>Permitting and inspection handled start to finish.</li>
+		<li>Close coordination with designers, architects, and general contractors throughout.</li>
+	</ul>
+</ServiceLayout>

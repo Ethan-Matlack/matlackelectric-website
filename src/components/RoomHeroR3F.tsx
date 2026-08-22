@@ -74,6 +74,7 @@ type ShotTriggerMode = "buttons" | "auto" | "both";
 const SHOT_TRIGGER_MODE: ShotTriggerMode = "buttons";
 const AUTO_ADVANCE_MS = 6000;
 const CAMERA_TRANSITION_MS = 900;
+const DAY_NIGHT_TRANSITION_MS = 500;
 const DEFAULT_FOV = 25;
 
 function easeInOutCubic(t: number) {
@@ -278,6 +279,56 @@ const NIGHT_BACKGROUND = "#0b1220";
 const DAY_AMBIENT = 0.5 * Math.PI;
 const NIGHT_AMBIENT = 0.05 * Math.PI;
 
+// Fades scene.background and the ambient light's intensity between the day
+// and night values, instead of snapping instantly on toggle. Same
+// useLayoutEffect-to-capture-start / useFrame-to-lerp shape as CameraRig
+// above — see its comments for why useLayoutEffect (not useEffect) matters
+// here too.
+function DayNightLighting({ isNight }: { isNight: boolean }) {
+	const scene = useThree((state) => state.scene);
+	const ambientRef = useRef<THREE.AmbientLight>(null);
+	// Mutated in place every frame and assigned to scene.background once, on
+	// mount — three.js reads its current RGB each render, so there's no need
+	// to reassign scene.background on every subsequent frame.
+	const currentColor = useRef<THREE.Color | null>(null);
+
+	const targetColor = useMemo(
+		() => new THREE.Color(isNight ? NIGHT_BACKGROUND : DAY_BACKGROUND),
+		[isNight],
+	);
+	const targetAmbient = isNight ? NIGHT_AMBIENT : DAY_AMBIENT;
+
+	const startColor = useRef(new THREE.Color());
+	const startAmbient = useRef(DAY_AMBIENT);
+	const startTime = useRef(0);
+
+	useLayoutEffect(() => {
+		if (!currentColor.current) {
+			// First mount — snap straight to the initial state, no fade in
+			// from nothing.
+			currentColor.current = targetColor.clone();
+			scene.background = currentColor.current;
+			if (ambientRef.current) ambientRef.current.intensity = targetAmbient;
+		}
+		startColor.current.copy(currentColor.current);
+		startAmbient.current = ambientRef.current?.intensity ?? targetAmbient;
+		startTime.current = performance.now();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isNight]);
+
+	useFrame(() => {
+		if (!currentColor.current) return;
+		const t = Math.min(1, (performance.now() - startTime.current) / DAY_NIGHT_TRANSITION_MS);
+		const eased = easeInOutCubic(t);
+		currentColor.current.lerpColors(startColor.current, targetColor, eased);
+		if (ambientRef.current) {
+			ambientRef.current.intensity = THREE.MathUtils.lerp(startAmbient.current, targetAmbient, eased);
+		}
+	});
+
+	return <ambientLight ref={ambientRef} />;
+}
+
 function KitchenModel({ onReady }: { onReady?: () => void }) {
 	const { scene } = useGLTF(KITCHEN_MODEL_URL);
 	useEffect(() => {
@@ -441,12 +492,17 @@ function KeypadPanel({
 	);
 }
 
-// Sits directly under the keypad (same side-anchored column, see
-// `.room-hero-controls` in global.css) rather than as a 5th keypad button —
-// a real RA3 keypad wouldn't have a "day/night" button on it; this is a
-// separate kind of control (more like a schedule/astro override), so it
-// reads as its own small segmented switch instead of pretending to be part
-// of the keypad face.
+// Bottom-left corner, mirroring .room-hero-controls' bottom-right anchor —
+// a real RA3 keypad wouldn't have a "day/night" button on it, so this reads
+// as its own separate control (more like a schedule/astro override) rather
+// than a 5th keypad button. A compact sun/moon slider (loosely inspired by
+// the classic checkbox-driven day/night toggle pattern) instead of the
+// previous two-button segmented switch, mainly to save space on mobile.
+// The actual <input type="checkbox"> stays for real keyboard/screen-reader
+// toggle semantics but is visually hidden; the visible track/thumb is
+// driven by the isNight prop directly (an .is-night class), matching how
+// every other stateful style in this file works (.is-active, .is-visible,
+// etc.) rather than introducing :checked-selector-driven CSS as a one-off.
 function DayNightToggle({
 	visible,
 	isNight,
@@ -457,29 +513,21 @@ function DayNightToggle({
 	onChange: (isNight: boolean) => void;
 }) {
 	return (
-		<div
-			className={`room-hero-daynight${visible ? " is-visible" : ""}`}
-			role="group"
-			aria-label="Time of day"
-			aria-hidden={!visible}
+		<label
+			className={`room-hero-daynight${visible ? " is-visible" : ""}${isNight ? " is-night" : ""}`}
 		>
-			<button
-				type="button"
-				className={!isNight ? "is-active" : ""}
-				onClick={() => onChange(false)}
+			<input
+				type="checkbox"
+				className="room-hero-daynight-input"
+				checked={isNight}
+				onChange={(e) => onChange(e.target.checked)}
 				tabIndex={visible ? undefined : -1}
-			>
-				Day
-			</button>
-			<button
-				type="button"
-				className={isNight ? "is-active" : ""}
-				onClick={() => onChange(true)}
-				tabIndex={visible ? undefined : -1}
-			>
-				Night
-			</button>
-		</div>
+				aria-label="Toggle night mode"
+			/>
+			<span className="room-hero-daynight-track">
+				<span className="room-hero-daynight-thumb" />
+			</span>
+		</label>
 	);
 }
 
@@ -601,8 +649,7 @@ export default function RoomHeroR3F() {
 					gl={{ antialias: false }}
 					camera={{ position: SHOTS[0].position, fov: SHOTS[0].fov ?? DEFAULT_FOV, near: 1, far: 20 }}
 				>
-					<color attach="background" args={[isNight ? NIGHT_BACKGROUND : DAY_BACKGROUND]} />
-					<ambientLight intensity={isNight ? NIGHT_AMBIENT : DAY_AMBIENT} />
+					<DayNightLighting isNight={isNight} />
 					<CameraRig shot={SHOTS[activeIndex]} />
 					<Suspense fallback={null}>
 						<KitchenModel onReady={handleSceneReady} />
@@ -619,8 +666,8 @@ export default function RoomHeroR3F() {
 			<SplashOverlay visible={SHOTS[activeIndex].id === "default"} />
 			<div className="room-hero-controls">
 				<KeypadPanel visible={isControlsShot} activeSceneId={activeSceneId} onSelect={setActiveSceneId} />
-				<DayNightToggle visible={isControlsShot} isNight={isNight} onChange={setIsNight} />
 			</div>
+			<DayNightToggle visible={isControlsShot} isNight={isNight} onChange={setIsNight} />
 			{SHOT_TRIGGER_MODE !== "auto" && <ShotNav activeIndex={activeIndex} onSelect={selectShot} />}
 		</>
 	);

@@ -17,7 +17,7 @@
      13. Service pages — pricing
      14. Case studies (portfolio)
      15. Footer
-     16. Desktop breakpoint (min-width: 768px)
+     16. Desktop breakpoint
 
 /* ============================================================================= */
 /* 1. Design tokens ------------------------------------------------------------ */
@@ -231,7 +231,20 @@ section {
 /* Mobile: a collapsible dropdown under the header, toggled open/closed via
    .is-open (added/removed by Header.astro's own script). Becomes a plain
    static row at the desktop breakpoint — see the media query at the
-   bottom of this file. */
+   bottom of this file.
+   CSS can't transition to/from height:auto, so animating a collapsible's
+   real content height needs a trick. This uses the grid-template-rows
+   0fr -> 1fr technique: animates a grid track's size, which settles at
+   exactly the content's natural height with nothing guessed or hardcoded
+   - unlike animating max-height to some fixed "hopefully big enough" pixel
+   value (the previous approach here), which silently clips once real
+   content exceeds that guess, and looks wrong even when it doesn't
+   (transitioning linearly through a ceiling much taller than the actual
+   content makes it snap open almost instantly instead of animating
+   smoothly). The grid item (.site-nav ul) needs overflow:hidden and
+   min-height:0 for this to work - min-height:0 because grid items default
+   to min-height:auto, which otherwise stops them shrinking below their own
+   content size, defeating the collapse. */
 .site-nav {
   position: absolute;
   top: 100%;
@@ -240,13 +253,13 @@ section {
   background-color: var(--color-bg);
   border-bottom: 1px solid var(--color-border);
   box-shadow: var(--shadow-md);
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.2s ease-out;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease-out;
 }
 
 .site-nav.is-open {
-  max-height: 320px;
+  grid-template-rows: 1fr;
 }
 
 .site-nav ul {
@@ -254,6 +267,8 @@ section {
   display: flex;
   flex-direction: column;
   padding: 0.5rem 1.25rem 1rem;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .site-nav li {
@@ -358,6 +373,11 @@ section {
 
 /* Camera shot nav — the pill row for switching between preset camera
    angles (Overview, Shading, Lighting, Controls, Networking). */
+/* Keeps at least 1.25rem clear on each side of the viewport (matching
+   .room-hero-controls' own margin) so this never touches or overflows the
+   edges. On its own that would just clip/overflow the row on narrow
+   phones - see the max-width query below, which tightens the
+   spacing so the same five items actually fit instead. */
 .room-hero-shots {
   position: absolute;
   left: 50%;
@@ -367,6 +387,7 @@ section {
   display: flex;
   gap: 0.4rem;
   padding: 0.4rem;
+  max-width: calc(100% - 2.5rem);
   background-color: color-mix(in srgb, var(--color-bg) 40%, transparent);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -381,7 +402,7 @@ section {
   font: inherit;
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--color-muted);
+  color: var(--color-text);
   background: none;
   border: none;
   border-radius: var(--radius);
@@ -397,6 +418,22 @@ section {
 .room-hero-shots button.is-active {
   background-color: var(--color-primary);
   color: var(--color-primary-contrast);
+}
+
+/* Tightens the nav pill row's spacing on narrow phones so the same five
+   items (eye icon + 4 shot labels) actually fit within max-width above
+   instead of overflowing past the viewport edges - reduces gaps and
+   button padding only, not font-size, so labels stay fully readable.
+   Still tight under ~340px; not worth chasing further than that. */
+@media (max-width: 420px) {
+  .room-hero-shots {
+    gap: 0.15rem;
+    padding: 0.3rem;
+  }
+
+  .room-hero-shots button {
+    padding: 0.4rem 0.4rem;
+  }
 }
 
 /* Landing splash — only shown on the default shot (see SplashOverlay in
@@ -449,17 +486,25 @@ section {
   align-items: center;
 }
 
-/* Controls column — only on the Controls shot: the keypad plus the
-   day/night toggle underneath it, stacked together so they read as one
-   control cluster anchored to the side of the shot (see KeypadPanel and
-   DayNightToggle in RoomHeroR3F.tsx). Not centered like the splash: these
-   are small real controls, not the visual focus of the shot — the room's
-   lighting response is. */
+/* Controls column — only on the Controls shot: just the keypad now (the
+   day/night toggle moved to its own bottom-left anchor — see
+   .room-hero-daynight below), anchored to the bottom-right corner (see
+   KeypadPanel in RoomHeroR3F.tsx). Not centered like the splash: this is a
+   small real control, not the visual focus of the shot — the room's
+   lighting response is. Corner-anchored rather than vertically centered so
+   it stays out of the way on mobile instead of covering the middle of the
+   scene.
+   bottom: 4.5rem clears .room-hero-shots (the nav pill row) — measured
+   directly: that bar sits at bottom:1rem and is ~2.9rem tall, so its top
+   edge is ~3.9rem up from the viewport bottom. This stack and the nav bar
+   are never guaranteed horizontal clearance (nav bar is centered, this is
+   right-anchored, and on narrow screens their x-ranges can genuinely
+   overlap), so the real fix is keeping them vertically stacked — this
+   value must stay above ~3.9rem or they can collide on small screens. */
 .room-hero-controls {
   position: absolute;
   right: 1.25rem;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 4.5rem;
   z-index: 1;
   display: flex;
   flex-direction: column;
@@ -525,18 +570,26 @@ section {
   background-color: #34d399;
 }
 
-/* Day/night toggle — a segmented switch, deliberately distinct from the
-   keypad buttons above it: this isn't a 5th keypad button (a real RA3
-   keypad wouldn't have one), it's a separate override for what's visible
-   through the window. */
+/* Day/night toggle — a compact sun/moon slider, bottom-left, mirroring
+   .room-hero-controls' bottom-right anchor (same bottom offset, so both
+   corner elements sit at the same height). Not a 5th keypad button (a real
+   RA3 keypad wouldn't have one) or grouped with it — this is a separate
+   kind of override, more like a schedule/astro control than a lighting
+   scene. See DayNightToggle in RoomHeroR3F.tsx: the real <input
+   type="checkbox"> is visually hidden below for keyboard/screen-reader
+   semantics; the track/thumb you actually see is styled off the .is-night
+   class, driven directly by React state — same pattern as every other
+   stateful style in this file (.is-active, .is-visible, etc.), not
+   :checked-selector-driven CSS. Colors echo DAY_BACKGROUND/NIGHT_BACKGROUND
+   in RoomHeroR3F.tsx, so the toggle's own look matches the scene it's
+   controlling. */
 .room-hero-daynight {
-  display: flex;
-  border-radius: var(--radius);
-  background-color: color-mix(in srgb, var(--color-bg) 40%, transparent);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(8px);
-  overflow: hidden;
+  position: absolute;
+  left: 1.25rem;
+  bottom: 4.5rem;
+  z-index: 1;
+  display: inline-block;
+  cursor: pointer;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.35s ease;
@@ -547,26 +600,84 @@ section {
   pointer-events: auto;
 }
 
-.room-hero-daynight button {
-  flex: 1;
-  font: inherit;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-muted);
-  background: none;
-  border: none;
-  padding: 0.5rem 0.25rem;
-  cursor: pointer;
-  text-align: center;
+/* Visually hidden, not display:none - stays in the accessibility tree and
+   keyboard-focusable/toggleable, same as any custom checkbox-styled
+   control. */
+.room-hero-daynight-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 
-.room-hero-daynight button:first-child {
-  border-right: 1px solid var(--color-border);
+.room-hero-daynight-track {
+  position: relative;
+  display: block;
+  width: 3.5rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, #a8d4ea, #dce8f2);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: background 0.35s ease;
 }
 
-.room-hero-daynight button.is-active {
-  color: var(--color-primary-contrast);
-  background-color: var(--color-primary);
+.room-hero-daynight.is-night .room-hero-daynight-track {
+  background: linear-gradient(to bottom, #0b1220, #1e293b);
+}
+
+/* A few stars - box-shadow dots on a single pseudo-element, invisible by
+   day, faded in at night. */
+.room-hero-daynight-track::before {
+  content: "";
+  position: absolute;
+  top: 0.3rem;
+  left: 0.45rem;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow:
+    0.6rem 0.2rem 0 0 #ffffff,
+    0.25rem 0.65rem 0 0 #ffffff,
+    1rem 0.55rem 0 0 #ffffff;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.room-hero-daynight.is-night .room-hero-daynight-track::before {
+  opacity: 0.85;
+}
+
+.room-hero-daynight-thumb {
+  position: absolute;
+  top: 0.19rem;
+  left: 0.19rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  /* Sun. */
+  background: radial-gradient(circle at 35% 35%, #fef3c7, #fbbf24);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.25);
+  transition: transform 0.35s ease, background 0.35s ease, box-shadow 0.35s ease;
+}
+
+/* Travel distance: track width (3.5rem) - thumb width (1.35rem) - both
+   insets (0.19rem x2) = 1.77rem. */
+.room-hero-daynight.is-night .room-hero-daynight-thumb {
+  transform: translateX(1.77rem);
+  /* Moon, with a couple of inset "craters" for a bit of character. */
+  background: radial-gradient(circle at 35% 35%, #f1f5f9, #cbd5e1);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.25),
+    -0.22rem -0.18rem 0 0.05rem rgba(100, 116, 139, 0.3) inset,
+    0.18rem 0.28rem 0 0.03rem rgba(100, 116, 139, 0.25) inset;
+}
+
+.room-hero-daynight:focus-within .room-hero-daynight-track {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* ============================================================================= */
@@ -1011,8 +1122,7 @@ section {
 
   .site-nav {
     position: static;
-    max-height: none;
-    overflow: visible;
+    display: block;
     background-color: transparent;
     border-bottom: none;
     box-shadow: none;
@@ -1022,6 +1132,11 @@ section {
     flex-direction: row;
     gap: 2rem;
     padding: 0;
+    /* Not collapsing at this breakpoint, so none of the grid-collapse
+       trick's requirements apply - reset so a focus ring on a nav link
+       can't get clipped at the edges. */
+    overflow: visible;
+    min-height: auto;
   }
 
   .site-nav li {

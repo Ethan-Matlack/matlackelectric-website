@@ -1,0 +1,34 @@
+---
+// Fixed by default (reachable without scrolling, from anywhere on the
+// page — long detail pages, especially on mobile), but switches to
+// absolute positioning once the footer is about to enter the viewport —
+// see .detail-back-fab.is-above-footer in global.css and the script below.
+// Must be rendered inside a `.detail-page-wrap` ancestor (that's the
+// containing block the "above footer" state anchors to).
+interface Props {
+	href: string;
+	label: string;
+}
+
+const { href, label } = Astro.props;
+---
+
+<a class="detail-back-fab" href={href}>&larr; {label}</a>
+
+<script>
+	const fab = document.querySelector<HTMLAnchorElement>(".detail-back-fab");
+	const footer = document.querySelector(".site-footer");
+	if (fab && footer) {
+		// Positive bottom rootMargin makes the observed area extend past the
+		// real viewport edge, so this fires slightly before the footer is
+		// actually visible — enough buffer to swap positioning modes before
+		// there's any visible overlap or jump.
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				fab.classList.toggle("is-above-footer", entry.isIntersecting);
+			},
+			{ rootMargin: "0px 0px 96px 0px" },
+		);
+		observer.observe(footer);
+	}
+</script>

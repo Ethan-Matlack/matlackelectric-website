@@ -1,40 +1,39 @@
 ---
 import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
 
-// PLACEHOLDER PRICING — not real numbers. Replace before this page goes
-// live; "$X,XXX" is deliberate so it can't be mistaken for a real price.
+// PLACEHOLDER PRICING — rough guesses, not real numbers. Replace before
+// this page goes live.
 const pricing: PricingBracket[] = [
 	{
-		label: "Transfer switch only",
-		price: "Starting at $X,XXX",
-		note: "Generator already owned — install and hookup only.",
-	},
-	{
-		label: "Standard whole-home standby generator",
-		price: "Starting at $X,XXX",
+		label: "Standby generator (whole-home)",
+		price: "$12,000 – $18,000",
 		note: "Generator, transfer switch, and install for an average-size home.",
 	},
 	{
-		label: "Larger home / higher capacity system",
-		price: "Starting at $X,XXX",
-		note: "Bigger homes or higher electrical loads.",
+		label: "Battery backup (critical loads)",
+		price: "$10,000 – $16,000",
+		note: "Standalone or solar-integrated, sized to cover essential circuits during an outage.",
+	},
+	{
+		label: "Transfer switch only",
+		price: "$1,500 – $2,500",
+		note: "Generator already owned — install and hookup only.",
 	},
 ];
 ---
 
 <ServiceLayout
-	title="Standby Generators | Matlack Electric"
-	description="Generac certified standby generator installation — sizing, transfer switches, and setup to Generac's standards, so your warranty stays intact."
-	serviceName="Standby Generators"
-	tagline="Whole-home backup power for peace of mind, whatever the weather."
+	title="Backup Power Solutions | Matlack Electric"
+	description="Generators, battery backup, and solar integration for whole-home resilience — sized to your actual usage and installed to keep your warranty intact."
+	serviceName="Backup Power Solutions"
+	tagline="Generators, battery backup, and solar integration for whole-home resilience, whatever the grid does. We size the system to your actual usage, not the biggest box we can sell you, and everything is installed to keep your manufacturer's warranty intact."
 	pricing={pricing}
 >
 	<ul>
-		<li>Generac certified installation and sizing.</li>
-		<li>Automatic transfer switch installation.</li>
-		<li>Load calculations to size the generator correctly for your home.</li>
-		<li>Gas line coordination with your plumber or gas utility where needed.</li>
-		<li>Permitting and inspection handled as part of the job.</li>
-		<li>Maintenance guidance to keep your warranty intact.</li>
+		<li>Generac certified standby generator installation and sizing.</li>
+		<li>Battery backup systems, standalone or integrated with solar.</li>
+		<li>Automatic transfer switches and critical-loads panels for a seamless outage response.</li>
+		<li>Load calculations and load-management devices sized to your home's real usage.</li>
+		<li>Permitting, inspection, and utility interconnection coordination handled start to finish.</li>
 	</ul>
 </ServiceLayout>

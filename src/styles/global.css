@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Matlack Electric — Base Styles (mobile-first)
+   Matlack Electric — Base Styles
    ========================================================================== */
 
 :root {
@@ -694,29 +694,32 @@ section {
   color: var(--color-muted);
 }
 
-/* Service detail pages (src/pages/services/*, ServiceLayout.astro) --------- */
+/* Detail pages (src/pages/services/*, src/pages/portfolio/* — ServiceLayout
+   and CaseStudyLayout) -------------------------------------------------- */
 
-/* Containing block for the button's .is-above-footer (position: absolute)
+/* Shared by any "detail page with a back button" layout, via the
+   BackToIndexFab component. Containing block for the button's
+   .is-above-footer (position: absolute)
    state below. min-height: 100% (against .main's flex-computed height)
    means even a short page's wrap still reaches all the way down to where
    the footer begins, so "just above the footer" is correct regardless of
    how much content the page has. */
-.service-page-wrap {
+.detail-page-wrap {
   position: relative;
   min-height: 100%;
 }
 
 /* Fixed by default - always reachable without scrolling, from anywhere on
    the page (the point, per the brief: these pages can run long, especially
-   on mobile). A tiny IntersectionObserver in ServiceLayout.astro swaps this
-   to .is-above-footer (position: absolute, anchored to .service-page-wrap
+   on mobile). BackToIndexFab's IntersectionObserver swaps this to
+   .is-above-footer (position: absolute, anchored to .detail-page-wrap
    instead of the viewport) once the footer is about to scroll into view,
    so it comes to rest just above the footer instead of floating on top of
    it - position: sticky alone can't do this: a sticky element only
    "catches" as you scroll toward its own place in the document, so placed
    at the end of a long page it would stay invisible for the entire middle
    of the page instead of being reachable the whole time. */
-.service-back-fab {
+.detail-back-fab {
   position: fixed;
   right: 1.25rem;
   bottom: 1.25rem;
@@ -734,19 +737,19 @@ section {
   transition: background-color 0.15s ease;
 }
 
-.service-back-fab.is-above-footer {
+.detail-back-fab.is-above-footer {
   position: absolute;
 }
 
-.service-back-fab:hover,
-.service-back-fab:focus {
+.detail-back-fab:hover,
+.detail-back-fab:focus {
   background-color: var(--color-primary-dark);
   color: var(--color-primary-contrast);
 }
 
-/* Body copy for the "What This Covers" slot — narrower than .container so
-   paragraphs and lists stay readable, matching the "simple, readable" brief
-   these pages are built around. */
+/* Body copy for a detail layout's main content slot — narrower than
+   .container so paragraphs and lists stay readable, matching the "simple,
+   readable" brief these pages are built around. */
 .prose {
   max-width: 65ch;
   margin-inline: auto;
@@ -775,11 +778,13 @@ section {
   overflow: hidden;
 }
 
+/* Stacked: the label/price line on top (.pricing-row-header), the note
+   below it at full row width — rather than squeezed into the same narrow
+   column as the label, which got cramped fast on mobile. */
 .pricing-row {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.3rem;
   padding: 1rem 1.25rem;
   border-top: 1px solid var(--color-border);
 }
@@ -788,9 +793,16 @@ section {
   border-top: none;
 }
 
+.pricing-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
 .pricing-label {
   font-weight: 600;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0;
 }
 
 .pricing-note {
@@ -805,6 +817,88 @@ section {
   color: var(--color-primary);
   text-align: right;
   margin-bottom: 0;
+}
+
+/* Case studies (src/pages/portfolio/*, CaseStudyLayout.astro) -------------
+   Deliberately loose rather than a rigid set of typed sections — projects
+   vary in photo count and story, so this is a handful of reusable blocks
+   (full image, image+text split, testimonial) meant to be mixed freely in
+   whatever order suits a given project, not a fixed template. Plain intro
+   paragraphs stay narrow for readability; the blocks below intentionally
+   run wider than that since they're meant to show the work off. */
+.case-study-body > p,
+.case-study-body > ul {
+  max-width: 60ch;
+  margin-inline: auto;
+  margin-bottom: 1.5rem;
+}
+
+.case-study-image {
+  margin: 2rem 0;
+}
+
+.case-study-image img {
+  width: 100%;
+  /* Astro's <Image> sets width/height attributes on the <img> itself
+     (e.g. 640x400) for the browser's built-in layout-shift prevention.
+     Without an explicit height here, that height attribute wins outright
+     instead of scaling with width - confirmed by testing: forcing auto
+     is what actually makes it scale proportionally. */
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.case-study-image figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.case-study-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: center;
+  margin: 2rem 0;
+}
+
+.case-study-split img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.case-study-split p {
+  margin-bottom: 0;
+}
+
+.case-study-testimonial {
+  max-width: 44rem;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-left: 4px solid var(--color-primary);
+  background-color: var(--color-surface);
+  border-radius: var(--radius);
+}
+
+.case-study-testimonial p {
+  font-size: 1.15rem;
+  font-style: italic;
+  color: var(--color-text);
+  margin-bottom: 1rem;
+}
+
+.case-study-testimonial footer {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.case-study-testimonial-role {
+  font-weight: 400;
+  color: var(--color-muted);
 }
 
 /* Footer ---------------------------------------------------------------------- */
@@ -876,27 +970,19 @@ section {
     grid-template-columns: repeat(3, 1fr);
   }
 
+  .case-study-split {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+  }
+
+  .case-study-split.reverse > :first-child {
+    order: 2;
+  }
+
   .footer-inner {
     display: flex;
     justify-content: space-between;
     align-items: center;
     text-align: left;
   }
-}
-
-/* ==========================================================================
-   Blog (src/content/blog, src/layouts/BlogPost.astro) — the blog templates
-   are the default Astro starter's, kept as-is and empty for now. These vars
-   are the subset their inline <style> blocks reference, so a future post
-   renders correctly without pulling in the starter's full Bear Blog theme.
-   ========================================================================== */
-
-:root {
-  --accent: var(--color-primary);
-  --black: 15, 18, 25;
-  --gray: 100, 116, 139;
-  --gray-dark: 30, 41, 59;
-  --box-shadow:
-    0 2px 6px rgba(var(--gray), 25%), 0 8px 24px rgba(var(--gray), 33%),
-    0 16px 32px rgba(var(--gray), 33%);
 }

@@ -1,41 +1,39 @@
 ---
 import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
 
-// PLACEHOLDER PRICING — these numbers are not real. Replace with actual
-// figures before this page goes live; the "$X,XXX" pattern is deliberate so
-// it can't be mistaken for a published price if this slips through review.
+// PLACEHOLDER PRICING — rough guesses, not real numbers. Replace before
+// this page goes live.
 const pricing: PricingBracket[] = [
 	{
 		label: "Single Level 2 charger circuit",
-		price: "Starting at $X,XXX",
+		price: "$800 – $1,500",
 		note: "Existing panel already has capacity — the common case for a first charger.",
 	},
 	{
 		label: "Charger circuit + panel upgrade",
-		price: "Starting at $X,XXX",
+		price: "$3,000 – $5,000",
 		note: "When the existing panel doesn't have room or capacity for the new circuit.",
 	},
 	{
-		label: "Additional/second charger circuit",
-		price: "Starting at $X,XXX",
-		note: "Adding a second charger to a home that already has one.",
+		label: "Load management system (multi-charger)",
+		price: "$1,200 – $2,000",
+		note: "Share panel capacity across two or more chargers without a full upgrade.",
 	},
 ];
 ---
 
 <ServiceLayout
-	title="EV Charger Installation | Matlack Electric"
-	description="Level 2 EV charger installation for renovations and existing homes — panel evaluations, Tesla Certified installation, and permitted work done right."
-	serviceName="EV Charger Installation"
-	tagline="Level 2 charging built in from the start, or added after the fact."
+	title="EV Charging | Matlack Electric"
+	description="EV charger installation for renovations and existing homes, including load management for multi-vehicle households, from a Tesla Certified installer."
+	serviceName="EV Charging"
+	tagline="EV charger installation for renovations and existing homes, including load management for multi-vehicle households — from a Tesla Certified installer who sources Wall Connectors directly and installs to Tesla's own standards."
 	pricing={pricing}
 >
 	<ul>
 		<li>Level 2 (240V) charger circuit installation for any major EV brand — Tesla, Rivian, Ford, and more.</li>
 		<li>Panel capacity evaluation, including load calculations and panel upgrades where needed.</li>
-		<li>Hardwired or NEMA 14-50 outlet installation, whichever fits your charger and setup.</li>
+		<li>Load management systems for homes charging multiple EVs on shared panel capacity.</li>
 		<li>Tesla Certified Installer — we source Wall Connectors directly and install to Tesla's standards.</li>
 		<li>Permitting and inspection handled as part of the job, not an afterthought.</li>
-		<li>Charger placement planned around your garage, driveway, or carport layout, not just the nearest outlet.</li>
 	</ul>
 </ServiceLayout>

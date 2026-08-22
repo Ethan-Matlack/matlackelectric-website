@@ -1,23 +1,21 @@
 ---
 import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
 
-// PLACEHOLDER PRICING — not real numbers. Replace before this page goes
-// live; "$X,XXX" is deliberate so it can't be mistaken for a real price.
 const pricing: PricingBracket[] = [
 	{
-		label: "Panel upgrade (100A to 200A)",
-		price: "Starting at $X,XXX",
-		note: "Common for older homes taking on more electrical load.",
+		label: "Panel Upgrade",
+		price: "$4000 – $8,000",
+		note: "Common for older homes taking on more electrical load (may be required for EV charging or switching to electric appliances.)",
 	},
 	{
-		label: "Partial rewire",
-		price: "Starting at $X,XXX",
-		note: "New circuits and outlets for a remodeled room or addition.",
+		label: "Kitchen Rewire",
+		price: "$8,000 - $14,000",
+		note: "New circuits, lighting, switches, and outlets for a full kitchen remodel or addition.",
 	},
 	{
-		label: "Whole-home rewire",
-		price: "Starting at $X,XXX",
-		note: "Full gut renovations — scope varies with home size and access.",
+		label: "Whole-home Rewire",
+		price: "Starting at $20,000",
+		note: "Full gut renovations - includes panel replacement. Scope varies significantly with home size and access.",
 	},
 ];
 ---

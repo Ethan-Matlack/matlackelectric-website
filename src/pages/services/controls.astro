@@ -1,32 +1,32 @@
 ---
 import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
 
-// PLACEHOLDER PRICING — not real numbers. Replace before this page goes
-// live; "$X,XXX" is deliberate so it can't be mistaken for a real price.
+// PLACEHOLDER PRICING — rough guesses, not real numbers. Replace before
+// this page goes live.
 const pricing: PricingBracket[] = [
 	{
-		label: "Caseta retrofit, per room",
-		price: "Starting at $XXX",
-		note: "Smart switches/dimmers, no new wiring needed.",
+		label: "Caseta retrofit (per room)",
+		price: "$300 – $600",
+		note: "Smart switches and dimmers, no new wiring needed.",
 	},
 	{
 		label: "RadioRA 3 whole-home system",
-		price: "Starting at $X,XXX",
+		price: "$8,000 – $15,000",
 		note: "Full keypad and dimmer system for a renovation-scale project.",
 	},
 	{
-		label: "Motorized shade integration",
-		price: "Starting at $X,XXX",
-		note: "Per room, shades and controls included.",
+		label: "Motorized shades (per window)",
+		price: "$800 – $1,500",
+		note: "Shade and control included, per window.",
 	},
 ];
 ---
 
 <ServiceLayout
-	title="Lutron Caseta & RadioRA 3 | Matlack Electric"
-	description="Certified Lutron Caseta and RadioRA 3 installation — smart lighting and shade control integrated into your renovation, sized to fit the project."
-	serviceName="Lutron Caseta &amp; RadioRA 3"
-	tagline="Smart lighting and shade control integrated into your renovation."
+	title="Smart Home Controls | Matlack Electric"
+	description="Smart lighting and shade control from Lutron — RadioRA 3 for whole-home systems, Caseta for retrofit-friendly upgrades — designed around how you actually live."
+	serviceName="Smart Home Controls"
+	tagline="Smart lighting and shade control from Lutron, the industry leader — RadioRA 3 for whole-home systems, Caseta for retrofit-friendly upgrades. We design the keypads and scenes around how you actually use each room, not just switch everything over to an app."
 	pricing={pricing}
 >
 	<ul>
@@ -35,6 +35,5 @@ const pricing: PricingBracket[] = [
 		<li>RadioRA 3 for whole-home lighting and shade control on larger renovations.</li>
 		<li>Keypad and scene programming (All On/Off, Entertain, Relax, and more) tailored to how you actually live.</li>
 		<li>Motorized shade integration alongside lighting control.</li>
-		<li>App, voice assistant, and smart home platform integration.</li>
 	</ul>
 </ServiceLayout>

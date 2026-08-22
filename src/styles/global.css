@@ -775,11 +775,13 @@ section {
   overflow: hidden;
 }
 
+/* Stacked: the label/price line on top (.pricing-row-header), the note
+   below it at full row width — rather than squeezed into the same narrow
+   column as the label, which got cramped fast on mobile. */
 .pricing-row {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.3rem;
   padding: 1rem 1.25rem;
   border-top: 1px solid var(--color-border);
 }
@@ -788,9 +790,16 @@ section {
   border-top: none;
 }
 
+.pricing-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
 .pricing-label {
   font-weight: 600;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0;
 }
 
 .pricing-note {

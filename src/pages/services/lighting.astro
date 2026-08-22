@@ -1,40 +1,39 @@
 ---
 import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
 
-// PLACEHOLDER PRICING — not real numbers. Replace before this page goes
-// live; "$X,XXX" is deliberate so it can't be mistaken for a real price.
+// PLACEHOLDER PRICING — rough guesses, not real numbers. Replace before
+// this page goes live.
 const pricing: PricingBracket[] = [
 	{
 		label: "Single-room lighting design + install",
-		price: "Starting at $X,XXX",
+		price: "$2,000 – $4,000",
 		note: "Kitchen, living room, or primary bedroom scale.",
 	},
 	{
 		label: "Whole-home lighting plan",
-		price: "Starting at $X,XXX",
+		price: "$10,000 – $20,000",
 		note: "Full layout, fixtures, and switching across every room.",
 	},
 	{
 		label: "Fixture install only",
-		price: "Starting at $XXX per fixture",
+		price: "$150 – $300 per fixture",
 		note: "Design already set — we handle rough-in and install.",
 	},
 ];
 ---
 
 <ServiceLayout
-	title="Custom Lighting Design | Matlack Electric"
-	description="Lighting consultation and installation for renovations — layered design, fixture selection, and installation that elevates every room."
-	serviceName="Custom Lighting Design"
-	tagline="Consultation and installation for lighting that elevates every room."
+	title="Custom Lighting | Matlack Electric"
+	description="In-house lighting design and installation — layered lighting planned room by room, from fixture selection through rough-in and trim."
+	serviceName="Custom Lighting"
+	tagline="If you can dream it, we can design and install it — in-house lighting design paired with installation, so the plan and the wiring come from the same place. Layered lighting, ambient, task, and accent, planned room by room, not an afterthought once the walls are closed."
 	pricing={pricing}
 >
 	<ul>
 		<li>Lighting layout and layering (ambient, task, accent) planned room by room.</li>
 		<li>Recessed, pendant, sconce, and undercabinet fixture installation.</li>
-		<li>Fixture selection guidance, working with Elco and other trusted brands.</li>
+		<li>In-house lighting design — fixture selection and layout, not just installation.</li>
 		<li>Dimming and layered switching designed in from the start, not bolted on afterward.</li>
-		<li>Coordination with your designer or architect's lighting plan.</li>
 		<li>Integration with Lutron control where whole-home dimming and scenes make sense.</li>
 	</ul>
 </ServiceLayout>

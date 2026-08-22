@@ -34,7 +34,7 @@ const { title, description, serviceName, tagline, pricing } = Astro.props;
 
 		<section class="container">
 			<div class="section-heading">
-				<h2>What This Covers</h2>
+				<h2>Capabilities</h2>
 			</div>
 			<div class="prose">
 				<slot />
@@ -47,18 +47,18 @@ const { title, description, serviceName, tagline, pricing } = Astro.props;
 					<div class="section-heading">
 						<h2>Pricing</h2>
 						<p>
-							Ballpark ranges for common scopes below — every renovation is different, so treat these as a
+							Ballpark ranges for common scopes of work below for "typical" finishes - every renovation is different, so treat these as a
 							starting point for budgeting, not a quote.
 						</p>
 					</div>
 					<div class="pricing-list">
 						{pricing.map((bracket) => (
 							<div class="pricing-row">
-								<div>
+								<div class="pricing-row-header">
 									<p class="pricing-label">{bracket.label}</p>
-									{bracket.note && <p class="pricing-note">{bracket.note}</p>}
+									<p class="pricing-price">{bracket.price}</p>
 								</div>
-								<p class="pricing-price">{bracket.price}</p>
+								{bracket.note && <p class="pricing-note">{bracket.note}</p>}
 							</div>
 						))}
 					</div>

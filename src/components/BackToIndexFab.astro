@@ -19,15 +19,21 @@ const { href, label } = Astro.props;
 	const fab = document.querySelector<HTMLAnchorElement>(".detail-back-fab");
 	const footer = document.querySelector(".site-footer");
 	if (fab && footer) {
-		// Positive bottom rootMargin makes the observed area extend past the
-		// real viewport edge, so this fires slightly before the footer is
-		// actually visible — enough buffer to swap positioning modes before
-		// there's any visible overlap or jump.
+		// No rootMargin buffer, deliberately: fixed (viewport-relative) and
+		// .is-above-footer (absolute, anchored to .detail-page-wrap) only
+		// land on the same on-screen spot at one precise scroll position —
+		// the instant the footer's top edge reaches the viewport's bottom
+		// edge. Triggering any earlier (a positive rootMargin, tried first)
+		// swaps to the absolute position before the page has scrolled that
+		// far, and since that position is still below the fold at that
+		// moment, the button visibly jumps off-screen before scrolling back
+		// into view over the buffer distance. Firing exactly at the crossing
+		// point is what makes the two modes hand off without a jump.
 		const observer = new IntersectionObserver(
 			([entry]) => {
 				fab.classList.toggle("is-above-footer", entry.isIntersecting);
 			},
-			{ rootMargin: "0px 0px 96px 0px" },
+			{ rootMargin: "0px" },
 		);
 		observer.observe(footer);
 	}

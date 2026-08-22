@@ -11,17 +11,28 @@ The homepage centers on an interactive 3D "lit room" hero built with
 
 ## Current status
 
-**`matlackelectric.com` and `www.matlackelectric.com` are currently serving a
-placeholder splash page**, not this site. The real site here is live at
-`new.matlackelectric.com` while the old WordPress site is decommissioned and
-DNS fully cuts over. All three hostnames are routed by the same Cloudflare
-Worker; `src/middleware.ts` decides which one gets the splash. See
-[`SPLASH-CUTOVER.md`](./SPLASH-CUTOVER.md) for the exact steps to retire the
-splash and restore normal static output once the cutover is done.
+This project serves `new.matlackelectric.com` — the real site. The primary
+domains, `matlackelectric.com` and `www.matlackelectric.com`, are currently
+served by a **separate, dedicated Cloudflare Worker** (outside this repo)
+showing a temporary "we've moved" placeholder while the old WordPress site
+is decommissioned and DNS fully cuts over. This project has no involvement
+in that splash page — it used to (via a hostname-checking middleware and
+`output: "server"`), but that was deliberately backed out in favor of the
+separate-Worker split, since it was on the runtime code path for every
+request on this site and had caused a production issue (Cloudflare doesn't
+run Sharp at request time, which broke on-demand image optimization for any
+page that wasn't explicitly prerendered). This project is back to Astro's
+default static output as a result.
+
+When `new.matlackelectric.com` is ready to retire in favor of the apex
+domain, that's just a routing change (point `matlackelectric.com` /
+`www.matlackelectric.com` at this Worker instead of the splash one, update
+`wrangler.json`'s `routes` and `astro.config.mjs`'s `site` accordingly) —
+no code changes needed here.
 
 ## Tech stack
 
-- **[Astro](https://astro.build) 5** (`output: "server"`) - pages, layouts, routing
+- **[Astro](https://astro.build) 5** (static output, prerendered at build time) - pages, layouts, routing
 - **[@astrojs/react](https://docs.astro.build/en/guides/integrations-guide/react/)** + **[React Three Fiber](https://r3f.docs.pmnd.rs/)** (`@react-three/fiber`, `@react-three/drei`, `@react-three/postprocessing`) + **[three.js](https://threejs.org/)** - the homepage's interactive 3D hero, loaded as a `client:only="react"` island
 - **[@astrojs/mdx](https://docs.astro.build/en/guides/integrations-guide/mdx/)** + **[@astrojs/sitemap](https://docs.astro.build/en/guides/integrations-guide/sitemap/)**
 - **[Cloudflare Workers](https://workers.cloudflare.com/)** via `@astrojs/cloudflare` + **[Wrangler](https://developers.cloudflare.com/workers/wrangler/)** - hosting/deploy
@@ -47,7 +58,6 @@ splash and restore normal static output once the cutover is done.
 │   │                           partners, portfolio, contact, blog/*, rss.xml
 │   ├── styles/global.css      All site CSS - design tokens in :root, one
 │   │                           stylesheet, no CSS modules/framework
-│   ├── middleware.ts          Splash-page routing (see Current status above)
 │   ├── consts.ts               Site-wide constants (SITE_TITLE)
 │   └── content.config.ts       Blog collection schema
 ├── astro.config.mjs            Astro + integrations + Cloudflare adapter config
@@ -83,15 +93,6 @@ An interactive kitchen/dining scene rendered with react-three-fiber:
   this (a deliberate tradeoff; see the comment above `.hero-room` in
   `global.css` for why).
 
-### Splash-page routing - `src/middleware.ts`
-
-Serves a static "we've moved" page for `matlackelectric.com` /
-`www.matlackelectric.com` while `new.matlackelectric.com` serves the real
-site, all from the same Worker. This is the reason the project runs in
-`output: "server"` mode instead of Astro's default static output - a static
-build can't inspect the request's `Host` header. See
-[`SPLASH-CUTOVER.md`](./SPLASH-CUTOVER.md) to remove it.
-
 ## Commands
 
 All commands run from the project root:
@@ -115,16 +116,13 @@ check` first if you want the extra type/dry-run safety net).
 
 Config lives in `wrangler.json`:
 
-- **Custom domains**: `matlackelectric.com`, `www.matlackelectric.com`,
-  `new.matlackelectric.com` all route to this one Worker (see
-  [Current status](#current-status) for why).
-- **Assets**: `dist/` is served via the `ASSETS` binding, with
-  `run_worker_first: true` - every request goes through the Worker (and
-  thus `src/middleware.ts`) before falling back to static assets. This is
-  only needed for the splash-page hostname check; see
-  [`SPLASH-CUTOVER.md`](./SPLASH-CUTOVER.md) for what to change once that
-  middleware is removed (short version: flip this back to the default so
-  static assets can be served without invoking the Worker).
+- **Custom domains**: only `new.matlackelectric.com` routes to this Worker
+  (see [Current status](#current-status) - the primary domains route to a
+  separate splash Worker for now).
+- **Assets**: `dist/` is served via the `ASSETS` binding, with no worker
+  invoked for static asset requests (the default) - the whole site is
+  prerendered static output, so there's no per-request logic that needs to
+  run first.
 - **Observability**: enabled, with source maps uploaded on deploy - errors
   in the Cloudflare dashboard should resolve to real source locations.
 - **Compatibility**: `nodejs_compat` flag is on (some dependencies expect
@@ -132,8 +130,19 @@ Config lives in `wrangler.json`:
 
 ## To-do / known follow-ups
 
-- **Retire the splash page** once DNS has fully cut over - see
-  [`SPLASH-CUTOVER.md`](./SPLASH-CUTOVER.md).
+- **Cut the primary domains over to this Worker** once DNS has fully
+  migrated and the separate splash Worker is no longer needed - update
+  `wrangler.json`'s `routes` and `astro.config.mjs`'s `site` to point at
+  `matlackelectric.com` instead of `new.matlackelectric.com`.
+- **Keep pages statically prerenderable.** This site relies on Astro's
+  default static output - every page is optimized (including any
+  `astro:assets` `<Image>` usage) at build time. If a future page genuinely
+  needs per-request server rendering, opt just that page out with
+  `export const prerender = false` rather than flipping the whole project
+  back to `output: "server"` - the last time this project ran in server
+  mode (for the now-removed splash middleware), it broke image
+  optimization on `/partners/` in production, because Cloudflare's runtime
+  can't run Sharp on-demand.
 - **Camera shot compositions** for Shading/Lighting/Controls/Networking in
   `RoomHeroR3F.tsx` are reasonable starting frames, not final pixel-tuned
   compositions (per the file's own comments) - worth a pass with real

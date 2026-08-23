@@ -1019,9 +1019,11 @@ section {
 /* 12. Detail pages — shared mechanics -----------------------------------------
    Shared by both "detail page with a back button" layouts — ServiceLayout
    (src/pages/services/*) and CaseStudyLayout (src/pages/portfolio/*) — via
-   the BackToIndexFab component and the .prose text column. Section 13
-   (pricing) is Service-page-only; section 14 (case studies) is
-   portfolio-only. */
+   the BackToIndexFab component and .detail-page-wrap. Content fills the
+   full .container width (no separate narrower text column) - the wrapping
+   div that used to cap it at 65ch for readability was removed once
+   testing showed the wider measure read fine here. Section 13 (pricing)
+   is Service-page-only; section 14 (case studies) is portfolio-only. */
 
 /* Containing block for .detail-back-fab's .is-above-footer (position:
    absolute) state below. min-height: 100% (against .main's flex-computed
@@ -1071,24 +1073,42 @@ section {
   color: var(--color-primary-contrast);
 }
 
-/* Body copy for a detail layout's main content slot — narrower than
-   .container so paragraphs and lists stay readable, matching the "simple,
-   readable" brief these pages are built around. */
-.prose {
-  max-width: 65ch;
+/* List styling for a detail layout's main content slot (capabilities
+   lists, case study copy) — scoped to .detail-page-wrap rather than a
+   dedicated wrapper class, since content here otherwise fills the full
+   .container width. A left-justified list spanning that whole width reads
+   badly (bullets pinned way out on the left edge, way too much room for
+   short lines) — max-width + margin-inline:auto center the list as a
+   block, the same way the old .prose wrapper did, without needing a
+   wrapper element: it's applied straight to the ul, whose own padding is
+   what keeps bullets/text left-justified within that now-centered block.
+   padding-inline (not padding-left alone) matters here specifically
+   because the block is centered: left-only padding insets the bullets
+   from the box's left edge with nothing balancing it on the right, so the
+   box itself sits centered but its visible content reads as shifted left
+   - barely noticeable at a narrow max-width, increasingly obvious as it
+   widens.
+   width:fit-content matters for a related but different reason: a <ul>
+   is a block box, so without it the ul always renders at the *full*
+   max-width regardless of how long its lines actually are - centering
+   that full-width (but mostly empty) box doesn't make the actual text
+   look centered, since short left-aligned lines just sit in the left
+   portion of it. Shrinking to the longest line's own natural width (up
+   to the max-width cap) means the box's true edges roughly track where
+   the text actually is, so centering the box reads as centering the list. */
+.detail-page-wrap ul {
+  width: fit-content;
+  max-width: 50rem;
   margin-inline: auto;
-}
-
-.prose ul {
   margin-bottom: 1em;
-  padding-left: 1.25em;
+  padding-inline: 1.25em;
 }
 
-.prose li {
+.detail-page-wrap li {
   margin-bottom: 0.4em;
 }
 
-.prose li:last-child {
+.detail-page-wrap li:last-child {
   margin-bottom: 0;
 }
 
@@ -1153,16 +1173,7 @@ section {
    Deliberately loose rather than a rigid set of typed sections — projects
    vary in photo count and story, so this is a handful of reusable blocks
    (full image, image+text split, testimonial) meant to be mixed freely in
-   whatever order suits a given project, not a fixed template. Plain intro
-   paragraphs stay narrow for readability; the blocks below intentionally
-   run wider than that since they're meant to show the work off. */
-.case-study-body > p,
-.case-study-body > ul {
-  max-width: 60ch;
-  margin-inline: auto;
-  margin-bottom: 1.5rem;
-}
-
+   whatever order suits a given project, not a fixed template. */
 .case-study-image {
   margin: 2rem 0;
 }

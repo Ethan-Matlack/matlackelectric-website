@@ -251,24 +251,36 @@ section {
   left: 0;
   right: 0;
   background-color: var(--color-bg);
-  border-bottom: 1px solid var(--color-border);
-  box-shadow: var(--shadow-md);
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows 0.2s ease-out;
 }
 
 .site-nav.is-open {
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
   grid-template-rows: 1fr;
 }
 
+/* min-height:0 lets the grid row collapse the *content* to nothing when
+   closed, but padding is part of the box either way — with it set
+   unconditionally here, the closed row still rendered as a flat 24px
+   band (0 content + this padding), showing through .site-nav's white
+   background as a bar under the header that was never supposed to be
+   visible at all. Moving the vertical padding to only .is-open (border/
+   shadow above too, same reason) means closed is truly 0px, not just
+   0px of content plus leftover padding. */
 .site-nav ul {
   list-style: none;
   display: flex;
   flex-direction: column;
-  padding: 0.5rem 1.25rem 1rem;
+  padding-inline: 1.25rem;
   overflow: hidden;
   min-height: 0;
+}
+
+.site-nav.is-open ul {
+  padding-block: 0.5rem 1rem;
 }
 
 .site-nav li {
@@ -750,10 +762,16 @@ section {
 /* ============================================================================= */
 /* 8. Cards, grid & small UI bits ---------------------------------------------- */
 
+/* Fluid card grid — auto-fit + minmax fits as many 16rem-minimum columns
+   as the row has room for and stretches them to fill it, recalculating
+   continuously as the viewport changes instead of jumping between a
+   fixed set of column counts at fixed breakpoints. No separate tablet/
+   desktop override needed: 1 column, 2, 3+ all fall out of the same rule
+   as space allows. */
 .grid {
   display: grid;
   gap: 1.25rem;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
 }
 
 .card {
@@ -1247,11 +1265,6 @@ section {
   .room-hero-splash-actions {
     flex-direction: row;
     justify-content: center;
-  }
-
-  /* Cards & grid */
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
   }
 
   /* Case studies */

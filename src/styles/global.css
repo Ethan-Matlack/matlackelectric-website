@@ -373,51 +373,27 @@ section {
 
 /* Camera shot nav — the pill row for switching between preset camera
    angles (Overview, Shades, Lighting, Controls, Data). */
-/* left:50% + transform (not left:1.25rem + right:1.25rem) so this always
-   stays truly centered, even once content can't fit within the
-   1.25rem-inset span. That combination looks equivalent at a glance, but
-   isn't: with left AND right both pinned, an absolutely positioned flex
-   container's width, height and both margins are all simultaneously
-   "known" once content forces it wider than the available span (an
-   over-constrained box per CSS2.1), and browsers resolve that by
-   dropping 'right' and keeping 'left' fixed — so the box (and everything
-   in it) drifts left instead of staying centered, exactly like a
-   still-picture would list to one side if you moved its actual center a
-   little at a time only in one direction. left:50% + translateX(-50%)
-   has no such case: centering is computed straight from the box's own
-   rendered width, so it's exact whether that width is comfortably
-   fit-content or clamped all the way down to max-width.
-   width:fit-content + max-width:calc(100% - 2.5rem) is what keeps that
-   1.25rem clearance — matching .room-hero-keypad's and
-   .room-hero-daynight's own margins — once content is too wide to fit:
-   fit-content's definition is already capped at its containing block's
-   available space, so max-width (not right) is what defines that
-   available span here. (A flex container's *auto* width doesn't
-   shrink-to-fit the same way a block's does — it stretches to fill all
-   available space instead — which is why this needs the explicit
-   fit-content keyword rather than leaving width unset.)
-   gap/padding below are fluid (not a breakpoint) for the same reason: a
-   hard jump at one viewport width reads as a snap, where this tightens
-   continuously instead — but CSS has no way to measure "am I actually
-   being squeezed" on its own, so that has to be told to it:
-   --shots-natural-width is the row's own full-size (max gap/padding)
-   content width, measured with DevTools at a wide viewport (re-measure
-   and update it if the shot labels ever change).
-   --shots-deficit turns that into a 0–1 ratio: 0 for any viewport with
-   room to spare (still fully hugging content, centered — not "shrinking
-   a little" the way a plain vw formula would already be doing well
-   before the row is actually constrained), climbing to 1 exactly once
-   gap/padding have given up all the space they can. That "exactly" is
-   what 4.2rem is doing, not a tuned-by-eye number: it's the sum of what
-   giving up all of gap's and both paddings' own max→min ranges actually
-   frees, 4 × 0.25rem (gap) + 2 × 0.1rem (this padding) + 10 × 0.3rem
-   (each button's own left+right padding) = 4.2rem — i.e. exactly how far
-   past --shots-natural-width the deficit can grow while gap/padding are
-   still able to absorb all of it, so the row's content width keeps
-   pace with the shrinking margin with no slack and no overflow either
-   way. Structural (5 buttons, these specific deltas), not
-   label-text-dependent, so — unlike --shots-natural-width — it doesn't
-   need touching when the labels change. */
+/* Centered with left:50% + transform, not left/right pins — pinning both
+   sides looks equivalent, but once content gets too wide to fit, browsers
+   keep the left edge fixed and let the right edge absorb the overflow,
+   so the row visibly drifts off-center. Centering via transform has no
+   such failure mode: it's always computed from the row's own actual
+   width, so it stays truly centered whether that width is its natural
+   size or clamped down by max-width.
+   width:fit-content + max-width lets the row hug its own content on wide
+   screens, then caps it at the same margin as .room-hero-keypad
+   and .room-hero-daynight once it would otherwise overflow. (A flex
+   container's width doesn't shrink-to-fit on its own the way a block's
+   does, hence the explicit fit-content.)
+   gap and padding fade toward tighter values as the viewport narrows,
+   instead of snapping at a breakpoint. --shots-natural-width tells CSS
+   how wide the row wants to be at full size (re-measure this if the shot
+   labels change); --shots-deficit turns "how far past that width are we
+   being squeezed" into a 0–1 ratio, which then scales gap and both
+   paddings down together, in proportion to how much each has to give.
+   That keeps the row's content shrinking in step with the shrinking
+   margin — it only starts tightening once genuinely out of room, and by
+   exactly enough to keep fitting, never more or less. */
 .room-hero-shots {
   --shots-natural-width: 20.9rem;
   --shots-deficit: clamp(0, calc((var(--shots-natural-width) - (100vw - 2.5rem)) / 4.2rem), 1);

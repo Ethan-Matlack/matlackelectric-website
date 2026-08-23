@@ -1198,13 +1198,25 @@ section {
   color: #cbd5e1;
 }
 
+/* Copyright and contact info sit side by side when there's room, wrap to
+   their own centered lines when there isn't — flex-wrap does this
+   continuously based on their actual rendered width, so there's no fixed
+   viewport width where it flips (justify-content:center rather than
+   space-between specifically because it's the one value that already
+   looks right in both the wrapped and unwrapped case, without needing a
+   breakpoint to switch between them). */
 .footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem 2rem;
   padding-block: 2rem;
   text-align: center;
 }
 
 .footer-inner p {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
 }
 
 .site-footer a {
@@ -1275,13 +1287,5 @@ section {
 
   .case-study-split.reverse > :first-child {
     order: 2;
-  }
-
-  /* Footer */
-  .footer-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-align: left;
   }
 }

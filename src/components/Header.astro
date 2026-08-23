@@ -34,14 +34,26 @@ const currentPath = Astro.url.pathname;
 				))}
 			</ul>
 		</nav>
+		<!-- Hidden, inert stand-in for the links, always laid out on one line —
+		     measured to decide whether the real links fit next to the logo,
+		     independent of whichever mode .site-nav is currently showing. -->
+		<ul class="nav-measure" aria-hidden="true">
+			{navLinks.map((link) => (
+				<li>{link.label}</li>
+			))}
+		</ul>
 	</div>
 </header>
 
 <script>
+	const header = document.querySelector<HTMLElement>(".site-header");
+	const headerInner = document.querySelector<HTMLElement>(".header-inner");
+	const logo = document.querySelector<HTMLElement>(".logo");
 	const toggle = document.querySelector<HTMLButtonElement>(".nav-toggle");
 	const nav = document.querySelector<HTMLElement>(".site-nav");
+	const measure = document.querySelector<HTMLElement>(".nav-measure");
 
-	if (toggle && nav) {
+	if (header && headerInner && logo && toggle && nav && measure) {
 		// Collapse the menu and flip the a11y state back to closed.
 		const closeNav = () => {
 			nav.classList.remove("is-open");
@@ -75,9 +87,32 @@ const currentPath = Astro.url.pathname;
 			}
 		});
 
-		// Resizing up to the desktop breakpoint clears any stale open state.
-		window.matchMedia("(min-width: 768px)").addEventListener("change", (event) => {
-			if (event.matches) closeNav();
-		});
+		// Switches between the inline link row and the hamburger + dropdown
+		// based on whether the links actually fit next to the logo, not a
+		// fixed viewport width — so adding, removing, or renaming a link
+		// never needs a breakpoint number revisited to match it. .nav-measure
+		// (always laid out on one line, hidden off-screen) gives the natural
+		// width the real links would need; MIN_GAP is how much breathing
+		// room to keep between the logo and the links even in the tightest
+		// case that still counts as "fits" — double of .header-inner's own
+		// side padding, so the gap between the two is distinct.
+		const checkFit = () => {
+			const headerInnerStyle = getComputedStyle(headerInner);
+			const minGap = 2*parseFloat(headerInnerStyle.paddingLeft);
+			// clientWidth includes .header-inner's own left/right padding,
+			// but flex layout positions children within the content box,
+			// inside that padding — without subtracting it, "available"
+			// came out ~40px too generous, so the switch to compact fired
+			// only once the links were already jammed against the logo.
+			const horizontalPadding = parseFloat(headerInnerStyle.paddingLeft) + parseFloat(headerInnerStyle.paddingRight);
+			const available = headerInner.clientWidth - horizontalPadding - logo.getBoundingClientRect().width - minGap;
+			const fits = measure.scrollWidth <= available;
+			header.classList.toggle("is-compact", !fits);
+			// Switching to the inline row clears any stale open state left
+			// over from the dropdown.
+			if (fits) closeNav();
+		};
+		checkFit();
+		window.addEventListener("resize", checkFit);
 	}
 </script>

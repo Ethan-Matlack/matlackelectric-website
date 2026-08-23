@@ -190,16 +190,18 @@ section {
 }
 
 .logo {
+  flex-shrink: 0;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-text);
   text-decoration: none;
 }
 
-/* Hamburger button, mobile only — hidden at the desktop breakpoint below,
-   where .site-nav switches to a plain inline row instead. */
+/* Hamburger button — hidden by default; shown only once Header.astro's
+   own script decides the links don't fit (see .site-header.is-compact
+   below and the fit check at the bottom of that script). */
 .nav-toggle {
-  display: flex;
+  display: none;
   flex-direction: column;
   justify-content: space-between;
   width: 24px;
@@ -209,6 +211,10 @@ section {
   background: none;
   border-radius: 2px;
   cursor: pointer;
+}
+
+.site-header.is-compact .nav-toggle {
+  display: flex;
 }
 
 .nav-toggle:focus {
@@ -228,10 +234,18 @@ section {
   border-radius: 2px;
 }
 
-/* Mobile: a collapsible dropdown under the header, toggled open/closed via
-   .is-open (added/removed by Header.astro's own script). Becomes a plain
-   static row at the desktop breakpoint — see the media query at the
-   bottom of this file.
+/* Default: a plain inline row of links next to the logo. min-width:0
+   overrides a flex item's default content-based floor, so if the row
+   ever doesn't fit (a brief instant before the fit check below adds
+   .is-compact) it quietly clips instead of overflowing the header or
+   wrapping onto a second line. */
+.site-nav {
+  min-width: 0;
+}
+
+/* Collapsible dropdown, once .is-compact says the links don't fit next
+   to the logo — toggled open/closed via .is-open (added/removed by
+   Header.astro's own script).
    CSS can't transition to/from height:auto, so animating a collapsible's
    real content height needs a trick. This uses the grid-template-rows
    0fr -> 1fr technique: animates a grid track's size, which settles at
@@ -245,7 +259,7 @@ section {
    min-height:0 for this to work - min-height:0 because grid items default
    to min-height:auto, which otherwise stops them shrinking below their own
    content size, defeating the collapse. */
-.site-nav {
+.site-header.is-compact .site-nav {
   position: absolute;
   top: 100%;
   left: 0;
@@ -256,47 +270,59 @@ section {
   transition: grid-template-rows 0.2s ease-out;
 }
 
-.site-nav.is-open {
+.site-header.is-compact .site-nav.is-open {
   border-bottom: 1px solid var(--color-border);
   box-shadow: var(--shadow-md);
   grid-template-rows: 1fr;
 }
 
-/* min-height:0 lets the grid row collapse the *content* to nothing when
-   closed, but padding is part of the box either way — with it set
-   unconditionally here, the closed row still rendered as a flat 24px
-   band (0 content + this padding), showing through .site-nav's white
-   background as a bar under the header that was never supposed to be
-   visible at all. Moving the vertical padding to only .is-open (border/
-   shadow above too, same reason) means closed is truly 0px, not just
-   0px of content plus leftover padding. */
 .site-nav ul {
   list-style: none;
   display: flex;
-  flex-direction: column;
-  padding-inline: 1.25rem;
+  flex-direction: row;
+  gap: 2rem;
+  white-space: nowrap;
   overflow: hidden;
+}
+
+/* min-height:0 lets the grid row collapse the *content* to nothing when
+   closed, but padding is part of the box either way — with it set
+   unconditionally, the closed row would still render as a flat 24px
+   band (0 content + this padding), showing through .site-nav's white
+   background as a bar under the header that was never supposed to be
+   visible at all. Keeping the vertical padding to only .is-open (border/
+   shadow above too, same reason) means closed is truly 0px, not just
+   0px of content plus leftover padding. */
+.site-header.is-compact .site-nav ul {
+  flex-direction: column;
+  gap: 0;
+  white-space: normal;
+  padding-inline: 1.25rem;
   min-height: 0;
 }
 
-.site-nav.is-open ul {
+.site-header.is-compact .site-nav.is-open ul {
   padding-block: 0.5rem 1rem;
 }
 
-.site-nav li {
+.site-header.is-compact .site-nav li {
   border-top: 1px solid var(--color-border);
 }
 
-.site-nav li:first-child {
+.site-header.is-compact .site-nav li:first-child {
   border-top: none;
 }
 
 .site-nav a {
   display: block;
-  padding: 0.85rem 0.25rem;
+  padding: 0.25rem 0;
   color: var(--color-text);
   text-decoration: none;
   font-weight: 500;
+}
+
+.site-header.is-compact .site-nav a {
+  padding: 0.85rem 0.25rem;
 }
 
 .site-nav a:hover,
@@ -307,6 +333,24 @@ section {
 .site-nav a[aria-current="page"] {
   color: var(--color-primary);
   font-weight: 700;
+}
+
+/* Hidden stand-in for the links, always laid out on one line regardless
+   of whether .site-nav is currently showing the inline row or the
+   dropdown — Header.astro's script measures this (not the real nav) to
+   decide whether the links fit, so that check never depends on or
+   disturbs the real nav's current state. position:fixed + far off-screen
+   keeps it out of any ancestor's layout/scrollable area entirely, not
+   just visually hidden. */
+.nav-measure {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+  display: flex;
+  gap: 2rem;
+  white-space: nowrap;
+  list-style: none;
+  font-weight: 500;
 }
 
 /* ============================================================================= */
@@ -1231,39 +1275,6 @@ section {
    everything that changes at this breakpoint in one place. */
 
 @media (min-width: 768px) {
-  /* Header / Navigation — hamburger goes away, .site-nav becomes a plain
-     inline row instead of a collapsible dropdown. */
-  .nav-toggle {
-    display: none;
-  }
-
-  .site-nav {
-    position: static;
-    display: block;
-    background-color: transparent;
-    border-bottom: none;
-    box-shadow: none;
-  }
-
-  .site-nav ul {
-    flex-direction: row;
-    gap: 2rem;
-    padding: 0;
-    /* Not collapsing at this breakpoint, so none of the grid-collapse
-       trick's requirements apply - reset so a focus ring on a nav link
-       can't get clipped at the edges. */
-    overflow: visible;
-    min-height: auto;
-  }
-
-  .site-nav li {
-    border-top: none;
-  }
-
-  .site-nav a {
-    padding: 0.25rem 0;
-  }
-
   /* Hero (text-banner pages) */
   .hero {
     padding-block: 5rem;

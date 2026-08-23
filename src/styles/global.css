@@ -777,6 +777,7 @@ section {
    tiles) rather than static content — resets link defaults and adds a
    hover/focus cue so it still reads as a "card" first, "link" second. */
 .card-link {
+  position: relative;
   display: block;
   color: inherit;
   text-decoration: none;
@@ -788,6 +789,25 @@ section {
   border-color: var(--color-primary);
   box-shadow: var(--shadow-md);
   color: inherit;
+}
+
+/* The "this card leads somewhere" cue — always visible (not a :hover-only
+   reveal), since hover doesn't exist on mobile, where cards otherwise
+   have no visual sign they're tappable. Nudges further right and darkens
+   on hover/focus as a small bonus on top of the border/shadow cue above,
+   not the affordance itself. */
+.card-link-chevron {
+  position: absolute;
+  right: 1.25rem;
+  bottom: 1.5rem;
+  color: var(--color-muted);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.card-link:hover .card-link-chevron,
+.card-link:focus .card-link-chevron {
+  color: var(--color-primary);
+  transform: translateX(0.2rem);
 }
 
 /* Small uppercase pill label. Carried over from the starter template —

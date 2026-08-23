@@ -1,6 +1,31 @@
-/* ==========================================================================
-   Matlack Electric — Base Styles
-   ========================================================================== */
+/* =============================================================================
+   Matlack Electric - Style Sheet
+
+   Table of contents:
+     1. Design tokens
+     2. Reset
+     3. Layout helpers
+     4. Buttons
+     5. Header / Navigation
+     6. Hero (text-banner pages)
+     7. Homepage 3D hero (RoomHeroR3F.tsx)
+     8. Cards, grid & small UI bits
+     9. Contact form (JobTread embed)
+     10. Section headings
+     11. Notice / placeholder boxes
+     12. Detail pages - shared mechanics (ServiceLayout + CaseStudyLayout)
+     13. Service pages - pricing
+     14. Case studies (portfolio)
+     15. Footer
+     16. Breakpoints
+============================================================================= */
+
+/* =============================================================================
+1. Design tokens
+----------------
+CSS custom properties (colors, fonts, spacing, shadows) that every other
+rule in this file reads from, instead of repeating literal values.
+============================================================================= */
 
 :root {
   --color-bg: #ffffff;
@@ -11,7 +36,7 @@
   --color-primary: #334155;
   --color-primary-dark: #1e293b;
   --color-primary-contrast: #ffffff;
-  --color-accent: #475569;
+  --color-accent: #475569; /* defined, currently unused anywhere */
 
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
@@ -20,14 +45,19 @@
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
   --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.10);
 
-  /* .site-header is sticky, in normal flow above <main> — not overlaid —
+  /* .site-header is sticky, in normal flow above <main> - not overlaid -
      so anything sized against 100svh (namely .hero-room) needs to subtract
      this to actually fit in one screen. Kept in sync with .header-inner's
      min-height below. */
   --header-height: 4rem;
 }
 
-/* Reset ------------------------------------------------------------------ */
+/* =============================================================================
+2. Reset
+--------
+Baseline element defaults (box-sizing, margins, links, headings, lists)
+so every browser starts from the same clean slate.
+============================================================================= */
 
 *,
 *::before,
@@ -37,7 +67,7 @@
 
 html {
   -webkit-text-size-adjust: 100%;
-  /* Scrollbar hidden site-wide, per request — scrolling itself still works
+  /* Scrollbar hidden site-wide, per request - scrolling itself still works
      via wheel/trackpad/touch/keyboard, this only removes the visual track
      and thumb. Trade-off: no "how far down the page am I" cue for anyone
      relying on the thumb's position. */
@@ -62,10 +92,10 @@ body {
 }
 
 /* Layout.astro renders <Header /><main><slot /></main><Footer /> as direct
-   children of body — main grows to fill any leftover vertical space, which
+   children of body - main grows to fill any leftover vertical space, which
    pushes the footer to the bottom of the viewport on short pages without
    pinning it in place (it still flows after content normally on tall
-   pages). ----------------------------------------------------------- */
+   pages). */
 main {
   flex: 1;
 }
@@ -99,7 +129,12 @@ ul {
   padding: 0;
 }
 
-/* Layout helpers ----------------------------------------------------------- */
+/* =============================================================================
+3. Layout helpers
+-----------------
+.container (the shared max-width/centering wrapper) and section's default
+vertical padding - the two building blocks most page sections use.
+============================================================================= */
 
 .container {
   width: 100%;
@@ -112,7 +147,12 @@ section {
   padding-block: 2.5rem;
 }
 
-/* Buttons ------------------------------------------------------------------ */
+/* =============================================================================
+4. Buttons
+----------
+.btn plus its primary/outline variants, used for every call-to-action
+link site-wide.
+============================================================================= */
 
 .btn {
   display: inline-block;
@@ -146,7 +186,13 @@ section {
   color: var(--color-primary-contrast);
 }
 
-/* Header / Navigation -------------------------------------------------------- */
+/* =============================================================================
+5. Header / Navigation
+----------------------
+The sticky site header - logo, plus the nav links either as an inline row
+or a hamburger dropdown, depending on whether they fit (see
+Header.astro's fit-check script).
+============================================================================= */
 
 .site-header {
   border-bottom: 1px solid var(--color-border);
@@ -166,14 +212,18 @@ section {
 }
 
 .logo {
+  flex-shrink: 0;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-text);
   text-decoration: none;
 }
 
+/* Hamburger button - hidden by default; shown only once Header.astro's
+   own script decides the links don't fit (see .site-header.is-compact
+   below and the fit check at the bottom of that script). */
 .nav-toggle {
-  display: flex;
+  display: none;
   flex-direction: column;
   justify-content: space-between;
   width: 24px;
@@ -185,11 +235,16 @@ section {
   cursor: pointer;
 }
 
+.site-header.is-compact .nav-toggle {
+  display: flex;
+}
+
 .nav-toggle:focus {
   outline: 2px solid var(--color-primary);
   outline-offset: 6px;
 }
 
+/* The three hamburger bars: one real <span>, two pseudo-elements. */
 .nav-toggle span,
 .nav-toggle::before,
 .nav-toggle::after {
@@ -201,44 +256,95 @@ section {
   border-radius: 2px;
 }
 
+/* Default: a plain inline row of links next to the logo. min-width:0
+   overrides a flex item's default content-based floor, so if the row
+   ever doesn't fit (a brief instant before the fit check below adds
+   .is-compact) it quietly clips instead of overflowing the header or
+   wrapping onto a second line. */
 .site-nav {
+  min-width: 0;
+}
+
+/* Collapsible dropdown, once .is-compact says the links don't fit next
+   to the logo - toggled open/closed via .is-open (added/removed by
+   Header.astro's own script).
+   CSS can't transition to/from height:auto, so animating a collapsible's
+   real content height needs a trick. This uses the grid-template-rows
+   0fr -> 1fr technique: animates a grid track's size, which settles at
+   exactly the content's natural height with nothing guessed or hardcoded
+   - unlike animating max-height to some fixed "hopefully big enough" pixel
+   value (the previous approach here), which silently clips once real
+   content exceeds that guess, and looks wrong even when it doesn't
+   (transitioning linearly through a ceiling much taller than the actual
+   content makes it snap open almost instantly instead of animating
+   smoothly). The grid item (.site-nav ul) needs overflow:hidden and
+   min-height:0 for this to work - min-height:0 because grid items default
+   to min-height:auto, which otherwise stops them shrinking below their own
+   content size, defeating the collapse. */
+.site-header.is-compact .site-nav {
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
   background-color: var(--color-bg);
-  border-bottom: 1px solid var(--color-border);
-  box-shadow: var(--shadow-md);
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.2s ease-out;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease-out;
 }
 
-.site-nav.is-open {
-  max-height: 320px;
+.site-header.is-compact .site-nav.is-open {
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  grid-template-rows: 1fr;
 }
 
 .site-nav ul {
   list-style: none;
   display: flex;
-  flex-direction: column;
-  padding: 0.5rem 1.25rem 1rem;
+  flex-direction: row;
+  gap: 2rem;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
-.site-nav li {
+/* min-height:0 lets the grid row collapse the *content* to nothing when
+   closed, but padding is part of the box either way - with it set
+   unconditionally, the closed row would still render as a flat 24px
+   band (0 content + this padding), showing through .site-nav's white
+   background as a bar under the header that was never supposed to be
+   visible at all. Keeping the vertical padding to only .is-open (border/
+   shadow above too, same reason) means closed is truly 0px, not just
+   0px of content plus leftover padding. */
+.site-header.is-compact .site-nav ul {
+  flex-direction: column;
+  gap: 0;
+  white-space: normal;
+  padding-inline: 1.25rem;
+  min-height: 0;
+}
+
+.site-header.is-compact .site-nav.is-open ul {
+  padding-block: 0.5rem 1rem;
+}
+
+.site-header.is-compact .site-nav li {
   border-top: 1px solid var(--color-border);
 }
 
-.site-nav li:first-child {
+.site-header.is-compact .site-nav li:first-child {
   border-top: none;
 }
 
 .site-nav a {
   display: block;
-  padding: 0.85rem 0.25rem;
+  padding: 0.25rem 0;
   color: var(--color-text);
   text-decoration: none;
   font-weight: 500;
+}
+
+.site-header.is-compact .site-nav a {
+  padding: 0.85rem 0.25rem;
 }
 
 .site-nav a:hover,
@@ -251,7 +357,32 @@ section {
   font-weight: 700;
 }
 
-/* Hero ---------------------------------------------------------------------- */
+/* Hidden stand-in for the links, always laid out on one line regardless
+   of whether .site-nav is currently showing the inline row or the
+   dropdown - Header.astro's script measures this (not the real nav) to
+   decide whether the links fit, so that check never depends on or
+   disturbs the real nav's current state. position:fixed + far off-screen
+   keeps it out of any ancestor's layout/scrollable area entirely, not
+   just visually hidden. */
+.nav-measure {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+  display: flex;
+  gap: 2rem;
+  white-space: nowrap;
+  list-style: none;
+  font-weight: 500;
+}
+
+/* =============================================================================
+6. Hero (text-banner pages)
+---------------------------
+The plain, short banner used by every page except the homepage - a
+heading and a line of copy over a flat background, sized by its own
+content (padding only, no forced height). See section 7 below for the
+homepage's very different full-viewport hero.
+============================================================================= */
 
 .hero {
   position: relative;
@@ -262,13 +393,24 @@ section {
   padding-block: 3rem;
 }
 
-/* Homepage hero — the full-viewport interactive react-three-fiber scene
-   (see RoomHeroR3F.tsx). Deliberately its own class rather than a .hero
-   variant: every other page's .hero is a short text banner sized by its
-   content, while this is meant to fill the viewport, so sharing height
-   rules between them would fight. .room-hero-visual gives R3F's <Canvas>
-   (which fills 100%/100% of its parent by default) a positioned, sized box
-   to fill within .hero-room. */
+/* =============================================================================
+7. Homepage 3D hero (RoomHeroR3F.tsx)
+-------------------------------------
+The interactive react-three-fiber kitchen scene that fills the homepage's
+hero section. Everything in this section is layout/chrome for that
+component - the scene itself lives in RoomHeroR3F.tsx. Rough map of the
+pieces below: .hero-room (outer section) → .room-hero-visual (canvas
+positioning box) → .room-hero-canvas-wrap (fade-in wrapper around the
+<Canvas>) → .room-hero-shots (camera shot nav pills), .room-hero-splash
+(landing text, default shot only), .room-hero-keypad (Lutron-style
+keypad, Controls shot only), .room-hero-daynight (day/night toggle).
+============================================================================= */
+
+/* Deliberately its own class rather than a .hero variant: unlike every
+   other page's short text banner, this is meant to fill the viewport, so
+   sharing height rules between them would fight. .room-hero-visual gives
+   R3F's <Canvas> (which fills 100%/100% of its parent by default) a
+   positioned, sized box to fill within .hero-room. */
 .hero-room {
   position: relative;
   overflow: hidden;
@@ -276,13 +418,13 @@ section {
   min-height: 24rem;
   border-bottom: 1px solid var(--color-border);
   /* Static screenshot of the default shot's scene ONLY (no splash text or
-     nav baked in — those are real DOM, sized by real CSS, and would scale
+     nav baked in - those are real DOM, sized by real CSS, and would scale
      wrong as raster pixels under background-size:cover at any viewport
      other than the one it was captured at). Visible immediately since it's
      a CSS background, not JS, so there's no blank flash while
      client:only="react" hydrates and the ~2MB GLB downloads.
      .room-hero-canvas-wrap below fades the real scene in on top of it once
-     ready — see RoomHeroR3F.tsx. The splash/nav appear as normal React DOM
+     ready - see RoomHeroR3F.tsx. The splash/nav appear as normal React DOM
      shortly after hydration, independent of the scene's own readiness. */
   background-image: url("/images/hero-poster.jpg");
   background-size: cover;
@@ -295,7 +437,7 @@ section {
   z-index: 0;
 }
 
-/* Hidden over the poster until isSceneReady flips, then an instant swap —
+/* Hidden over the poster until isSceneReady flips, then an instant swap -
    no fade/blur transition. The poster now matches the live frame closely
    enough that animating the swap only drew attention to it; a straight cut
    between two near-identical frames reads as nothing happening at all.
@@ -311,15 +453,42 @@ section {
   opacity: 1;
 }
 
+/* Camera shot nav - the pill row for switching between preset camera
+   angles (Overview, Shades, Lighting, Controls, Data). */
+/* Centered with left:50% + transform, not left/right pins - pinning both
+   sides looks equivalent, but once content gets too wide to fit, browsers
+   keep the left edge fixed and let the right edge absorb the overflow,
+   so the row visibly drifts off-center. Centering via transform has no
+   such failure mode: it's always computed from the row's own actual
+   width, so it stays truly centered whether that width is its natural
+   size or clamped down by max-width.
+   width:fit-content + max-width lets the row hug its own content on wide
+   screens, then caps it at the same margin as .room-hero-keypad
+   and .room-hero-daynight once it would otherwise overflow. (A flex
+   container's width doesn't shrink-to-fit on its own the way a block's
+   does, hence the explicit fit-content.)
+   gap and padding fade toward tighter values as the viewport narrows,
+   instead of snapping at a breakpoint. --shots-natural-width tells CSS
+   how wide the row wants to be at full size (re-measure this if the shot
+   labels change); --shots-deficit turns "how far past that width are we
+   being squeezed" into a 0–1 ratio, which then scales gap and both
+   paddings down together, in proportion to how much each has to give.
+   That keeps the row's content shrinking in step with the shrinking
+   margin - it only starts tightening once genuinely out of room, and by
+   exactly enough to keep fitting, never more or less. */
 .room-hero-shots {
+  --shots-natural-width: 20.9rem;
+  --shots-deficit: clamp(0, calc((var(--shots-natural-width) - (100vw - 2.5rem)) / 4.2rem), 1);
   position: absolute;
   left: 50%;
   bottom: 1rem;
   transform: translateX(-50%);
+  width: fit-content;
+  max-width: calc(100% - 2.5rem);
   z-index: 1;
   display: flex;
-  gap: 0.4rem;
-  padding: 0.4rem;
+  gap: calc(0.4rem - var(--shots-deficit) * 0.25rem);
+  padding: calc(0.4rem - var(--shots-deficit) * 0.1rem);
   background-color: color-mix(in srgb, var(--color-bg) 40%, transparent);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -334,11 +503,11 @@ section {
   font: inherit;
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--color-muted);
+  color: var(--color-text);
   background: none;
   border: none;
   border-radius: var(--radius);
-  padding: 0.4rem 0.7rem;
+  padding: 0.4rem calc(0.7rem - var(--shots-deficit) * 0.3rem);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -352,14 +521,14 @@ section {
   color: var(--color-primary-contrast);
 }
 
-/* Landing splash — only shown on the default shot (see SplashOverlay in
+/* Landing splash - only shown on the default shot (see SplashOverlay in
    RoomHeroR3F.tsx). Stays mounted across shots and fades via opacity rather
    than being added/removed, so it eases in step with the camera instead of
    snapping, and pointer-events/tabindex are toggled alongside so it's not
    interactive while faded out. */
 .room-hero-splash {
   /* Anchored to the top rather than dead-center so it doesn't have to fight
-     the bottom-anchored shot nav for space — their clearance would
+     the bottom-anchored shot nav for space - their clearance would
      otherwise depend on the hero's height, which varies by viewport. */
   position: absolute;
   top: 1.5rem;
@@ -402,35 +571,40 @@ section {
   align-items: center;
 }
 
-/* Controls column — only on the Controls shot: the keypad plus the
-   day/night toggle underneath it, stacked together so they read as one
-   control cluster anchored to the side of the shot (see KeypadPanel and
-   DayNightToggle in RoomHeroR3F.tsx). Not centered like the splash: these
-   are small real controls, not the visual focus of the shot — the room's
-   lighting response is. */
-.room-hero-controls {
+/* Modeled closely on a real Lutron RadioRA 3 keypad (the RRST-W4B-WH,
+   4-button: All On / Entertain / Relax / All Off) - deliberately literal
+   hex colors below, not the site's theme tokens, since the point is
+   matching that specific product's plastic/label/LED colors rather than
+   fitting this site's palette. Just the switch module itself (the rounded
+   button cluster), not the surrounding wall faceplate - this sits directly
+   over the 3D scene, so the plate would just be extra visual weight with
+   nothing to attach to.
+   Only shown on the Controls shot (see KeypadPanel in RoomHeroR3F.tsx),
+   corner-anchored rather than centered like the splash: this is a small
+   real control, not the visual focus of the shot - the room's lighting
+   response is. Corner-anchored rather than vertically centered so it stays
+   out of the way on mobile instead of covering the middle of the scene.
+   bottom: 4.5rem clears .room-hero-shots (the nav pill row) - measured
+   directly: that bar sits at bottom:1rem and is ~2.9rem tall, so its top
+   edge is ~3.9rem up from the viewport bottom. This and the nav bar are
+   never guaranteed horizontal clearance (nav bar is centered, this is
+   right-anchored, and on narrow screens their x-ranges can genuinely
+   overlap), so the real fix is keeping them vertically stacked - this
+   value must stay above ~3.9rem or they can collide on small screens. */
+.room-hero-keypad {
   position: absolute;
   right: 1.25rem;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 4.5rem;
   z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
   width: 8.5rem;
-}
-
-/* No fade-in delay unlike the splash, since arriving here is already a
-   deliberate choice to use it. */
-.room-hero-keypad {
   display: flex;
   flex-direction: column;
-  padding: 0.4rem;
-  border-radius: var(--radius);
-  background-color: color-mix(in srgb, var(--color-bg) 40%, transparent);
-  border: 1px solid var(--color-border);
+  aspect-ratio: 1 / 2;
+  padding: 0.2rem;
+  border-radius: 0.55rem;
+  background-color: #e6e6e6;
+  border: 1px solid #d0d0d0;
   box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(8px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.35s ease;
@@ -442,53 +616,129 @@ section {
 }
 
 .room-hero-keypad button {
+  position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 0.5rem;
   font: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-text);
-  background: none;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #8a8a8a;
+  background-color: #f7f7f7;
   border: none;
-  border-top: 1px solid var(--color-border);
-  padding: 0.65rem 0.5rem;
+  border-top: 1px solid #cbcbcb;
+  padding: 0.55rem 0.6rem;
+  flex: 1;
   cursor: pointer;
   text-align: left;
 }
 
 .room-hero-keypad button:first-child {
   border-top: none;
+  border-top-left-radius: 0.4rem;
+  border-top-right-radius: 0.4rem;
 }
 
+.room-hero-keypad button:last-child {
+  border-bottom-left-radius: 0.4rem;
+  border-bottom-right-radius: 0.4rem;
+}
+
+.room-hero-keypad-label {
+  padding-top: 0.1rem;
+}
+
+/* The lit/unlit indicator - a slim vertical bar at the button's right edge,
+   matching the real keypad's LED style (a thin backlit line, not a round
+   dot). Off is plain light gray with no shadow - a glow on an unlit
+   indicator would read as light being emitted when it isn't. The active
+   button's indicator lights up white with a soft glow instead, since that
+   glow is standing in for actual emitted light. */
 .room-hero-keypad-led {
-  width: 0.4rem;
-  height: 0.4rem;
-  border-radius: 50%;
-  background-color: var(--color-border);
+  align-self: center;
+  width: 2px;
+  height: 1.1rem;
+  border-radius: 999px;
+  background-color: #c9c9c9;
   flex-shrink: 0;
 }
 
-.room-hero-keypad button.is-active {
-  color: var(--color-primary);
-}
-
 .room-hero-keypad button.is-active .room-hero-keypad-led {
-  background-color: #34d399;
+  background-color: #ffffff;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.9);
 }
 
-/* Day/night toggle — a segmented switch, deliberately distinct from the
-   keypad buttons above it: this isn't a 5th keypad button (a real RA3
-   keypad wouldn't have one), it's a separate override for what's visible
-   through the window. */
+.room-hero-keypad-brand {
+  position: absolute;
+  left: 0.6rem;
+  bottom: 0.35rem;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #b0b0b0;
+  pointer-events: none;
+}
+
+/* Shrinks the whole keypad on the smallest phones - 450px comfortably
+   covers even the largest mobile widths (~440px), rather than tying this
+   to a specific device. width/aspect-ratio still fully determine the
+   height, so every dimension below is just the base rule's value scaled
+   down by roughly the same amount. */
+@media (max-width: 450px) {
+  .room-hero-keypad {
+    width: 7rem;
+    padding: 0.15rem;
+    border-radius: 0.45rem;
+  }
+
+  .room-hero-keypad button {
+    font-size: 0.62rem;
+    padding: 0.45rem 0.5rem;
+  }
+
+  .room-hero-keypad button:first-child {
+    border-top-left-radius: 0.3rem;
+    border-top-right-radius: 0.3rem;
+  }
+
+  .room-hero-keypad button:last-child {
+    border-bottom-left-radius: 0.3rem;
+    border-bottom-right-radius: 0.3rem;
+  }
+
+  .room-hero-keypad-led {
+    height: 0.9rem;
+  }
+
+  .room-hero-keypad-brand {
+    left: 0.5rem;
+    bottom: 0.28rem;
+    font-size: 0.45rem;
+  }
+}
+
+/* Day/night toggle - a compact sun/moon slider, bottom-left, mirroring
+   .room-hero-keypad's bottom-right anchor (same bottom offset, so both
+   corner elements sit at the same height). Not a 5th keypad button (a real
+   RA3 keypad wouldn't have one) or grouped with it - this is a separate
+   kind of override, more like a schedule/astro control than a lighting
+   scene. See DayNightToggle in RoomHeroR3F.tsx: the real <input
+   type="checkbox"> is visually hidden below for keyboard/screen-reader
+   semantics; the track/thumb you actually see is styled off the .is-night
+   class, driven directly by React state - same pattern as every other
+   stateful style in this file (.is-active, .is-visible, etc.), not
+   :checked-selector-driven CSS. Colors echo DAY_BACKGROUND/NIGHT_BACKGROUND
+   in RoomHeroR3F.tsx, so the toggle's own look matches the scene it's
+   controlling. */
 .room-hero-daynight {
-  display: flex;
-  border-radius: var(--radius);
-  background-color: color-mix(in srgb, var(--color-bg) 40%, transparent);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(8px);
-  overflow: hidden;
+  position: absolute;
+  left: 1.25rem;
+  bottom: 4.5rem;
+  z-index: 1;
+  display: inline-block;
+  cursor: pointer;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.35s ease;
@@ -499,34 +749,101 @@ section {
   pointer-events: auto;
 }
 
-.room-hero-daynight button {
-  flex: 1;
-  font: inherit;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-muted);
-  background: none;
-  border: none;
-  padding: 0.5rem 0.25rem;
-  cursor: pointer;
-  text-align: center;
+/* Visually hidden, not display:none - stays in the accessibility tree and
+   keyboard-focusable/toggleable, same as any custom checkbox-styled
+   control. */
+.room-hero-daynight-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 
-.room-hero-daynight button:first-child {
-  border-right: 1px solid var(--color-border);
+.room-hero-daynight-track {
+  position: relative;
+  display: block;
+  width: 3.5rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, #a8d4ea, #dce8f2);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: background 0.35s ease;
 }
 
-.room-hero-daynight button.is-active {
-  color: var(--color-primary-contrast);
-  background-color: var(--color-primary);
+.room-hero-daynight.is-night .room-hero-daynight-track {
+  background: linear-gradient(to bottom, #0b1220, #1e293b);
 }
 
-/* Cards / grid ---------------------------------------------------------------- */
+/* A few stars - box-shadow dots on a single pseudo-element, invisible by
+   day, faded in at night. */
+.room-hero-daynight-track::before {
+  content: "";
+  position: absolute;
+  top: 0.3rem;
+  left: 0.45rem;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow:
+    0.6rem 0.2rem 0 0 #ffffff,
+    0.25rem 0.65rem 0 0 #ffffff,
+    1rem 0.55rem 0 0 #ffffff;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.room-hero-daynight.is-night .room-hero-daynight-track::before {
+  opacity: 0.85;
+}
+
+.room-hero-daynight-thumb {
+  position: absolute;
+  top: 0.19rem;
+  left: 0.19rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  /* Sun. */
+  background: radial-gradient(circle at 35% 35%, #fef3c7, #fbbf24);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.25);
+  transition: transform 0.35s ease, background 0.35s ease, box-shadow 0.35s ease;
+}
+
+/* Travel distance: track width (3.5rem) - thumb width (1.35rem) - both
+   insets (0.19rem x2) = 1.77rem. */
+.room-hero-daynight.is-night .room-hero-daynight-thumb {
+  transform: translateX(1.77rem);
+  /* Moon, with a couple of inset "craters" for a bit of character. */
+  background: radial-gradient(circle at 35% 35%, #f1f5f9, #cbd5e1);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.25),
+    -0.22rem -0.18rem 0 0.05rem rgba(100, 116, 139, 0.3) inset,
+    0.18rem 0.28rem 0 0.03rem rgba(100, 116, 139, 0.25) inset;
+}
+
+.room-hero-daynight:focus-within .room-hero-daynight-track {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* =============================================================================
+8. Cards, grid & small UI bits
+------------------------------
+Fluid card grid - auto-fit + minmax fits as many 16rem-minimum columns
+as the row has room for and stretches them to fill it, recalculating
+continuously as the viewport changes instead of jumping between a
+fixed set of column counts at fixed breakpoints. No separate tablet/
+desktop override needed: 1 column, 2, 3+ all fall out of the same rule
+as space allows.
+============================================================================= */
 
 .grid {
   display: grid;
   gap: 1.25rem;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
 }
 
 .card {
@@ -547,9 +864,10 @@ section {
 }
 
 /* Modifier for a .card that's a whole clickable link (e.g. the Services
-   tiles) rather than static content — resets link defaults and adds a
+   tiles) rather than static content - resets link defaults and adds a
    hover/focus cue so it still reads as a "card" first, "link" second. */
 .card-link {
+  position: relative;
   display: block;
   color: inherit;
   text-decoration: none;
@@ -563,6 +881,27 @@ section {
   color: inherit;
 }
 
+/* The "this card leads somewhere" cue - always visible (not a :hover-only
+   reveal), since hover doesn't exist on mobile, where cards otherwise
+   have no visual sign they're tappable. Nudges further right and darkens
+   on hover/focus as a small bonus on top of the border/shadow cue above,
+   not the affordance itself. */
+.card-link-chevron {
+  position: absolute;
+  right: 1.25rem;
+  bottom: 1.5rem;
+  color: var(--color-muted);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.card-link:hover .card-link-chevron,
+.card-link:focus .card-link-chevron {
+  color: var(--color-primary);
+  transform: translateX(0.2rem);
+}
+
+/* Small uppercase pill label. Carried over from the starter template -
+   currently not used anywhere on the site. */
 .badge {
   display: inline-block;
   padding: 0.25em 0.75em;
@@ -576,17 +915,22 @@ section {
   margin-bottom: 0.75rem;
 }
 
+/* The Lutron/Tesla/Generac certification logos on the Partners page. */
 .partner-logo {
   width: 100%;
   height: auto;
   margin-bottom: 1rem;
 }
 
-/* Contact form — styling around a third-party embed (JobTread). The form's
-   data-jobtread-web-form/data-key attributes, every input's name attribute,
-   and the submit button's data-submit-button attribute are hooks the
-   embed's own script relies on to find and wire up the form — layout and
-   color only below, nothing structural. --------------------------------- */
+/* =============================================================================
+9. Contact form (JobTread embed)
+--------------------------------
+Styling around a third-party embed. The form's data-jobtread-web-form /
+data-key attributes, every input's name attribute, and the submit
+button's data-submit-button attribute are hooks the embed's own script
+relies on to find and wire up the form - layout and color only below,
+nothing structural.
+============================================================================= */
 
 .contact-form {
   max-width: 32rem;
@@ -631,7 +975,7 @@ section {
   /* Paired with the auto-grow script: it sets height directly as content
      changes, so no internal scrollbar should ever be needed. Manually
      dragging the resize handle shorter than the content can still clip it
-     until the next keystroke re-triggers the script — an accepted tradeoff
+     until the next keystroke re-triggers the script - an accepted tradeoff
      for keeping a working no-JS fallback (see the script's comment). */
   overflow-y: hidden;
 }
@@ -670,11 +1014,16 @@ section {
   justify-content: flex-end;
 }
 
-/* Section headings ---------------------------------------------------------- */
+/* =============================================================================
+10. Section headings
+--------------------
+Centered intro block (h2 + a line of muted copy) used above a .grid or
+similar content block, on About/Partners/Services/etc.
+============================================================================= */
 
 .section-heading {
   text-align: center;
-  max-width: 50ch;
+  max-width: 75ch;
   margin-inline: auto;
   margin-bottom: 2rem;
 }
@@ -684,7 +1033,12 @@ section {
   margin-bottom: 0;
 }
 
-/* Placeholder / notice boxes -------------------------------------------------- */
+/* =============================================================================
+11. Notice / placeholder boxes
+------------------------------
+Dashed-border callout box - used both for real CTAs (e.g. "Get a Quote"
+at the bottom of a page) and for placeholder/no-content states.
+============================================================================= */
 
 .notice {
   background-color: var(--color-surface);
@@ -694,24 +1048,30 @@ section {
   color: var(--color-muted);
 }
 
-/* Detail pages (src/pages/services/*, src/pages/portfolio/* — ServiceLayout
-   and CaseStudyLayout) -------------------------------------------------- */
+/* =============================================================================
+12. Detail pages - shared mechanics
+-----------------------------------
+Shared by both "detail page with a back button" layouts - ServiceLayout
+(src/pages/services/*) and CaseStudyLayout (src/pages/portfolio/*) - via
+the BackToIndexFab component and .detail-page-wrap. Content fills the
+full .container width (no separate narrower text column) - the wrapping
+div that used to cap it at 65ch for readability was removed once
+testing showed the wider measure read fine here. Section 13 (pricing)
+is Service-page-only; section 14 (case studies) is portfolio-only.
+============================================================================= */
 
-/* Shared by any "detail page with a back button" layout, via the
-   BackToIndexFab component. Containing block for the button's
-   .is-above-footer (position: absolute)
-   state below. min-height: 100% (against .main's flex-computed height)
-   means even a short page's wrap still reaches all the way down to where
-   the footer begins, so "just above the footer" is correct regardless of
-   how much content the page has. */
+/* Containing block for .detail-back-fab's .is-above-footer (position:
+   absolute) state below. min-height: 100% (against .main's flex-computed
+   height) means even a short page's wrap still reaches all the way down to
+   where the footer begins, so "just above the footer" is correct
+   regardless of how much content the page has. */
 .detail-page-wrap {
   position: relative;
   min-height: 100%;
 }
 
 /* Fixed by default - always reachable without scrolling, from anywhere on
-   the page (the point, per the brief: these pages can run long, especially
-   on mobile). BackToIndexFab's IntersectionObserver swaps this to
+   the page. BackToIndexFab's IntersectionObserver swaps this to
    .is-above-footer (position: absolute, anchored to .detail-page-wrap
    instead of the viewport) once the footer is about to scroll into view,
    so it comes to rest just above the footer instead of floating on top of
@@ -747,27 +1107,45 @@ section {
   color: var(--color-primary-contrast);
 }
 
-/* Body copy for a detail layout's main content slot — narrower than
-   .container so paragraphs and lists stay readable, matching the "simple,
-   readable" brief these pages are built around. */
-.prose {
-  max-width: 65ch;
+/* List styling for a detail layout's main content slot (capabilities
+   lists, case study copy) - scoped to .detail-page-wrap rather than a
+   dedicated wrapper class, since content here otherwise fills the full
+   .container width, and a list stretched that wide looks bad.
+   Three things work together to make the list read as centered while
+   its actual bullets and text stay left-justified:
+   - width:fit-content shrinks the list down to whatever its longest line
+     needs, instead of always spanning the full max-width. Without this,
+     short lines just sit in the left part of a much wider box, and
+     centering that box doesn't make the text look centered.
+   - margin-inline:auto then centers that (now content-sized) box.
+   - padding-inline (equal on both sides, not just the left) keeps the
+     bullets from hugging the box's edge, without which the box centers
+     correctly but its content still looks pushed to the left. */
+.detail-page-wrap ul {
+  width: fit-content;
+  max-width: 50rem;
   margin-inline: auto;
-}
-
-.prose ul {
   margin-bottom: 1em;
-  padding-left: 1.25em;
+  padding-inline: 1.25em;
 }
 
-.prose li {
+.detail-page-wrap li {
   margin-bottom: 0.4em;
 }
 
-.prose li:last-child {
+.detail-page-wrap li:last-child {
   margin-bottom: 0;
 }
 
+/* =============================================================================
+13. Service pages - pricing
+---------------------------
+The bordered pricing-bracket list on a ServiceLayout page, built from a
+service's `pricing` prop.
+============================================================================= */
+
+/* The "Pricing" section on a ServiceLayout page - a bordered list of
+   label/price/note rows built from a service's `pricing` prop. */
 .pricing-list {
   max-width: 65ch;
   margin-inline: auto;
@@ -779,7 +1157,7 @@ section {
 }
 
 /* Stacked: the label/price line on top (.pricing-row-header), the note
-   below it at full row width — rather than squeezed into the same narrow
+   below it at full row width - rather than squeezed into the same narrow
    column as the label, which got cramped fast on mobile. */
 .pricing-row {
   display: flex;
@@ -819,19 +1197,14 @@ section {
   margin-bottom: 0;
 }
 
-/* Case studies (src/pages/portfolio/*, CaseStudyLayout.astro) -------------
-   Deliberately loose rather than a rigid set of typed sections — projects
-   vary in photo count and story, so this is a handful of reusable blocks
-   (full image, image+text split, testimonial) meant to be mixed freely in
-   whatever order suits a given project, not a fixed template. Plain intro
-   paragraphs stay narrow for readability; the blocks below intentionally
-   run wider than that since they're meant to show the work off. */
-.case-study-body > p,
-.case-study-body > ul {
-  max-width: 60ch;
-  margin-inline: auto;
-  margin-bottom: 1.5rem;
-}
+/* =============================================================================
+14. Case studies (portfolio)
+----------------------------
+Deliberately loose rather than a rigid set of typed sections - projects
+vary in photo count and story, so this is a handful of reusable blocks
+(full image, image+text split, testimonial) meant to be mixed freely in
+whatever order suits a given project, not a fixed template.
+============================================================================= */
 
 .case-study-image {
   margin: 2rem 0;
@@ -856,6 +1229,9 @@ section {
   text-align: center;
 }
 
+/* Image + text pair. Single column (stacked) by default; becomes a real
+   two-column layout at the desktop breakpoint below, where .reverse also
+   flips which side the image sits on. */
 .case-study-split {
   display: grid;
   grid-template-columns: 1fr;
@@ -901,7 +1277,12 @@ section {
   color: var(--color-muted);
 }
 
-/* Footer ---------------------------------------------------------------------- */
+/* =============================================================================
+15. Footer
+----------
+Copyright and contact info, wrapping onto their own centered lines once
+they no longer fit side by side.
+============================================================================= */
 
 .site-footer {
   background-color: var(--color-primary-dark);
@@ -909,54 +1290,39 @@ section {
 }
 
 .footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem 2rem;
   padding-block: 2rem;
   text-align: center;
 }
 
 .footer-inner p {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
 }
 
 .site-footer a {
   color: #ffffff;
 }
 
-/* ==========================================================================
-   Desktop breakpoint
-   ========================================================================== */
+/* =============================================================================
+16. Breakpoints
+---------------
+One combined block for every component's breakpoint overrides, grouped
+below in the same order as their base rules above, rather than a separate
+@media block per component. Note that breakpoints should only be used
+when absolutely neccessary - responsive design should be attempted first.
+============================================================================= */
 
 @media (min-width: 768px) {
-  .nav-toggle {
-    display: none;
-  }
-
-  .site-nav {
-    position: static;
-    max-height: none;
-    overflow: visible;
-    background-color: transparent;
-    border-bottom: none;
-    box-shadow: none;
-  }
-
-  .site-nav ul {
-    flex-direction: row;
-    gap: 2rem;
-    padding: 0;
-  }
-
-  .site-nav li {
-    border-top: none;
-  }
-
-  .site-nav a {
-    padding: 0.25rem 0;
-  }
-
+  /* Hero (text-banner pages) */
   .hero {
     padding-block: 5rem;
   }
 
+  /* Homepage 3D hero - landing splash */
   .room-hero-splash h1 {
     font-size: 2.25rem;
   }
@@ -966,10 +1332,7 @@ section {
     justify-content: center;
   }
 
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
+  /* Case studies */
   .case-study-split {
     grid-template-columns: 1fr 1fr;
     gap: 2.5rem;
@@ -977,12 +1340,5 @@ section {
 
   .case-study-split.reverse > :first-child {
     order: 2;
-  }
-
-  .footer-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-align: left;
   }
 }

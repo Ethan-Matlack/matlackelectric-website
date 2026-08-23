@@ -37,10 +37,8 @@ const { title, description, projectName, tagline, testimonial } = Astro.props;
 		     .case-study-split blocks (see global.css), mixed with plain
 		     paragraphs, in whatever order fits this particular project. -->
 		<section class="container">
-			<div class="prose case-study-body">
-				<slot />
-			</div>
-		
+			<slot />
+
 		{
 			testimonial && (
 					<blockquote class="case-study-testimonial">

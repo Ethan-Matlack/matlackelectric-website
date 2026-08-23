@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import CardLink from "../components/CardLink.astro";
 ---
 
 <Layout
@@ -19,18 +20,18 @@ import Layout from "../layouts/Layout.astro";
       <p>Take a look at some of our recent work in residential electrical installations.</p>
     </div>
     <div class="grid">
-      <a class="card card-link" href="/portfolio/citrone-addition/">
+      <CardLink href="/portfolio/citrone-addition/">
         <h3>The Citrone Addition</h3>
         <p>A stunning kitchen & dining addition with custom beam uplighting, cabinet lighting, and smart home integration.</p>
-      </a>
-      <a class="card card-link" href="/portfolio/REPLACE_THIS/">
+      </CardLink>
+      <CardLink href="/portfolio/REPLACE_THIS/">
         <h3>Project 2</h3>
         <p>A description of Project 2.</p>
-      </a>
-      <a class="card card-link" href="/portfolio/REPLACE_THIS/">
+      </CardLink>
+      <CardLink href="/portfolio/REPLACE_THIS/">
         <h3>Project 3</h3>
         <p>A description of Project 3.</p>
-      </a>
+      </CardLink>
     </div>
   </section>
 </Layout>

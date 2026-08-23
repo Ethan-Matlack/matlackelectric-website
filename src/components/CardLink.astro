@@ -1,0 +1,28 @@
+---
+// A .card that's a whole clickable link (Services/Portfolio grid tiles).
+// The chevron is the "this leads somewhere" cue — always visible, not
+// hover-only, since hover doesn't exist on mobile and text like "Learn
+// more" competes with the UI-driven look the rest of the site goes for.
+interface Props {
+	href: string;
+}
+const { href } = Astro.props;
+---
+
+<a class="card card-link" href={href}>
+	<slot />
+	<svg
+		class="card-link-chevron"
+		width="18"
+		height="18"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		stroke-width="2"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+		aria-hidden="true"
+	>
+		<path d="M9 6l6 6-6 6" />
+	</svg>
+</a>

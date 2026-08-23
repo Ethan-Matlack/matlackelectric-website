@@ -1,8 +1,6 @@
 # Matlack Electric - Website
 
-Marketing site for Matlack Electric, a residential electrical contractor
-(whole-home rewiring, panel upgrades, custom lighting, Lutron/RadioRA smart
-control, EV charging, generators/battery backup). Built with
+Main website for Matlack Electric, a residential electrical contractor based in Chattanooga, TN. Built with
 [Astro](https://astro.build), deployed to [Cloudflare Workers](https://workers.cloudflare.com/).
 
 The homepage centers on an interactive 3D "lit room" hero built with
@@ -11,11 +9,11 @@ The homepage centers on an interactive 3D "lit room" hero built with
 
 ## Current status
 
-This project serves `new.matlackelectric.com` — the real site. The primary
+This project serves `new.matlackelectric.com` — the real future site. The primary
 domains, `matlackelectric.com` and `www.matlackelectric.com`, are currently
 served by a **separate, dedicated Cloudflare Worker** (outside this repo)
 showing a temporary "we've moved" placeholder while the old WordPress site
-is decommissioned and DNS fully cuts over. This project has no involvement
+is decommissioned and this new site is built. This project has no involvement
 in that splash page — it used to (via a hostname-checking middleware and
 `output: "server"`), but that was deliberately backed out in favor of the
 separate-Worker split, since it was on the runtime code path for every
@@ -115,7 +113,7 @@ check` first if you want the extra type/dry-run safety net).
 Config lives in `wrangler.json`:
 
 - **Custom domains**: only `new.matlackelectric.com` routes to this Worker
-  (see [Current status](#current-status) - the primary domains route to a
+  (see [Current status](#current-status) - the primary domain routes to a
   separate splash Worker for now).
 - **Assets**: `dist/` is served via the `ASSETS` binding, with no worker
   invoked for static asset requests (the default) - the whole site is
@@ -128,19 +126,9 @@ Config lives in `wrangler.json`:
 
 ## To-do / known follow-ups
 
-- **Cut the primary domains over to this Worker** once DNS has fully
-  migrated and the separate splash Worker is no longer needed - update
+- **Cut the primary domains over to this Worker** once the site is production ready - update
   `wrangler.json`'s `routes` and `astro.config.mjs`'s `site` to point at
   `matlackelectric.com` instead of `new.matlackelectric.com`.
-- **Keep pages statically prerenderable.** This site relies on Astro's
-  default static output - every page is optimized (including any
-  `astro:assets` `<Image>` usage) at build time. If a future page genuinely
-  needs per-request server rendering, opt just that page out with
-  `export const prerender = false` rather than flipping the whole project
-  back to `output: "server"` - the last time this project ran in server
-  mode (for the now-removed splash middleware), it broke image
-  optimization on `/partners/` in production, because Cloudflare's runtime
-  can't run Sharp on-demand.
 - **Camera shot compositions** for Shading/Lighting/Controls/Networking in
   `RoomHeroR3F.tsx` are reasonable starting frames, not final pixel-tuned
   compositions (per the file's own comments) - worth a pass with real

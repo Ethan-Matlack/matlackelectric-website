@@ -75,10 +75,46 @@ const SHOT_TRIGGER_MODE: ShotTriggerMode = "buttons";
 const AUTO_ADVANCE_MS = 6000;
 const CAMERA_TRANSITION_MS = 900;
 const DAY_NIGHT_TRANSITION_MS = 500;
+const SCENE_FADE_MS = 500;
 const DEFAULT_FOV = 25;
 
 function easeInOutCubic(t: number) {
 	return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+}
+
+// Smoothly eases a plain number toward `target` over `durationMs` — the
+// generalized version of the start/target/startTime + useLayoutEffect +
+// useFrame shape CameraRig (below) uses for camera position/quaternion/fov,
+// reused here for anything that's just a single fading number: day/night's
+// ambient intensity, and each keypad scene's pendant/undercabinet light
+// levels. Returns a ref, not state — like CameraRig, callers read
+// `.current` inside their own useFrame and imperatively push it onto the
+// actual Three.js object each frame, since animating through React
+// props/re-renders has no built-in easing.
+function useEasedNumber(target: number, durationMs: number) {
+	const value = useRef(target);
+	const start = useRef(target);
+	const startTime = useRef(0);
+	const hasInitialized = useRef(false);
+
+	useLayoutEffect(() => {
+		if (!hasInitialized.current) {
+			// First mount — snap straight to the initial target, no fade in
+			// from an arbitrary default.
+			value.current = target;
+			hasInitialized.current = true;
+		}
+		start.current = value.current;
+		startTime.current = performance.now();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [target]);
+
+	useFrame(() => {
+		const t = Math.min(1, (performance.now() - startTime.current) / durationMs);
+		value.current = THREE.MathUtils.lerp(start.current, target, easeInOutCubic(t));
+	});
+
+	return value;
 }
 
 type Shot = {
@@ -102,8 +138,8 @@ const SHOTS: Shot[] = [
 		lookAt: [0.24, 0, -4],
 	},
 	{
-		id: "shading",
-		label: "Shading",
+		id: "shades",
+		label: "Shades",
 		position: [-2, 1.5, 2],
 		lookAt: [-4, 1, -1.5],
 	},
@@ -114,19 +150,14 @@ const SHOTS: Shot[] = [
 		lookAt: [0, 0.6, -5.5],
 	},
 	{
-		// Deliberately close to (not identical to) the default shot — the
-		// point of this shot is watching the room's lights actually respond
-		// to the keypad, not looking at the keypad itself (there's no 3D
-		// keypad prop at all; it's a real HTML control panel — see
-		// KeypadPanel). Starting values only; meant to be hand-tuned.
 		id: "controls",
 		label: "Controls",
 		position: [1.2, 1.1, 5.2],
 		lookAt: [0, 0.3, -3.5],
 	},
 	{
-		id: "networking",
-		label: "Networking",
+		id: "data",
+		label: "Data",
 		position: [0, 0.4, -2],
 		lookAt: [-2, 1.97, -2],
 	},
@@ -153,16 +184,31 @@ const DEFAULT_SCENE_ID: SceneId = "allOn";
 
 function PendantLights({ level = 1 }: { level?: number }) {
 	const targets = useMemo(() => PENDANT_HEAD_X.map(() => new THREE.Object3D()), []);
+	// One eased value shared by all three heads so they dim/brighten in
+	// lockstep, pushed onto each spotLight's intensity imperatively (see
+	// useEasedNumber above) instead of the instant snap a declarative
+	// `intensity={18 * level}` prop would give.
+	const easedLevel = useEasedNumber(level, SCENE_FADE_MS);
+	const lightRefs = useRef<(THREE.SpotLight | null)[]>([]);
+
+	useFrame(() => {
+		for (const light of lightRefs.current) {
+			if (light) light.intensity = 18 * easedLevel.current;
+		}
+	});
+
 	return (
 		<>
 			{PENDANT_HEAD_X.map((x, i) => (
 				<group key={x}>
 					<primitive object={targets[i]} position={[x, -0.3, PENDANT_HEAD_Z]} />
 					<spotLight
+						ref={(el) => {
+							lightRefs.current[i] = el;
+						}}
 						position={[x, PENDANT_HEAD_Y, PENDANT_HEAD_Z]}
 						target={targets[i]}
 						color="#ffd9a0"
-						intensity={18 * level}
 						distance={4}
 						angle={Math.PI / 3.5}
 						penumbra={0.6}
@@ -204,6 +250,18 @@ const UNDERCABINET_COLOR = "#ffd9a0";
 
 function UndercabinetLights({ level = 1 }: { level?: number }) {
 	const centerX = (CABINET_X_MIN + CABINET_X_MAX) / 2;
+	// Same eased-fade approach as PendantLights (see useEasedNumber above),
+	// pushed onto the lens' emissive glow and the rectAreaLight together so
+	// they stay in sync.
+	const easedLevel = useEasedNumber(level, SCENE_FADE_MS);
+	const lensMaterialRef = useRef<THREE.MeshStandardMaterial>(null);
+	const areaLightRef = useRef<THREE.RectAreaLight>(null);
+
+	useFrame(() => {
+		if (lensMaterialRef.current) lensMaterialRef.current.emissiveIntensity = 2 * easedLevel.current;
+		if (areaLightRef.current) areaLightRef.current.intensity = 75 * easedLevel.current;
+	});
+
 	return (
 		<group>
 			{/* Strip housing — thin aluminum-toned channel under the cabinet edge. */}
@@ -217,19 +275,19 @@ function UndercabinetLights({ level = 1 }: { level?: number }) {
 			<mesh position={[centerX, UNDERCABINET_Y - 0.011, UNDERCABINET_Z + 0.02]}>
 				<boxGeometry args={[CABINET_SPAN - 0.05, 0.008, 0.02]} />
 				<meshStandardMaterial
+					ref={lensMaterialRef}
 					color={UNDERCABINET_COLOR}
 					emissive={UNDERCABINET_COLOR}
-					emissiveIntensity={2 * level}
 					roughness={0.3}
 				/>
 			</mesh>
 			<rectAreaLight
+				ref={areaLightRef}
 				position={[centerX, UNDERCABINET_Y - 0.02, UNDERCABINET_Z + 0.05]}
 				rotation={[-Math.PI / 2, 0, 0]}
 				width={CABINET_SPAN}
 				height={0.06}
 				color={UNDERCABINET_COLOR}
-				intensity={75 * level}
 			/>
 		</group>
 	);
@@ -280,10 +338,12 @@ const DAY_AMBIENT = 0.5 * Math.PI;
 const NIGHT_AMBIENT = 0.05 * Math.PI;
 
 // Fades scene.background and the ambient light's intensity between the day
-// and night values, instead of snapping instantly on toggle. Same
-// useLayoutEffect-to-capture-start / useFrame-to-lerp shape as CameraRig
-// above — see its comments for why useLayoutEffect (not useEffect) matters
-// here too.
+// and night values, instead of snapping instantly on toggle. The ambient
+// intensity reuses useEasedNumber (above); scene.background is a
+// THREE.Color, not a plain number, so it keeps its own lerp here, following
+// the same useLayoutEffect-to-capture-start / useFrame-to-lerp shape as
+// CameraRig — see its comments for why useLayoutEffect (not useEffect)
+// matters here too.
 function DayNightLighting({ isNight }: { isNight: boolean }) {
 	const scene = useThree((state) => state.scene);
 	const ambientRef = useRef<THREE.AmbientLight>(null);
@@ -296,10 +356,9 @@ function DayNightLighting({ isNight }: { isNight: boolean }) {
 		() => new THREE.Color(isNight ? NIGHT_BACKGROUND : DAY_BACKGROUND),
 		[isNight],
 	);
-	const targetAmbient = isNight ? NIGHT_AMBIENT : DAY_AMBIENT;
+	const easedAmbient = useEasedNumber(isNight ? NIGHT_AMBIENT : DAY_AMBIENT, DAY_NIGHT_TRANSITION_MS);
 
 	const startColor = useRef(new THREE.Color());
-	const startAmbient = useRef(DAY_AMBIENT);
 	const startTime = useRef(0);
 
 	useLayoutEffect(() => {
@@ -308,10 +367,8 @@ function DayNightLighting({ isNight }: { isNight: boolean }) {
 			// from nothing.
 			currentColor.current = targetColor.clone();
 			scene.background = currentColor.current;
-			if (ambientRef.current) ambientRef.current.intensity = targetAmbient;
 		}
 		startColor.current.copy(currentColor.current);
-		startAmbient.current = ambientRef.current?.intensity ?? targetAmbient;
 		startTime.current = performance.now();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isNight]);
@@ -319,11 +376,8 @@ function DayNightLighting({ isNight }: { isNight: boolean }) {
 	useFrame(() => {
 		if (!currentColor.current) return;
 		const t = Math.min(1, (performance.now() - startTime.current) / DAY_NIGHT_TRANSITION_MS);
-		const eased = easeInOutCubic(t);
-		currentColor.current.lerpColors(startColor.current, targetColor, eased);
-		if (ambientRef.current) {
-			ambientRef.current.intensity = THREE.MathUtils.lerp(startAmbient.current, targetAmbient, eased);
-		}
+		currentColor.current.lerpColors(startColor.current, targetColor, easeInOutCubic(t));
+		if (ambientRef.current) ambientRef.current.intensity = easedAmbient.current;
 	});
 
 	return <ambientLight ref={ambientRef} />;
@@ -484,15 +538,18 @@ function KeypadPanel({
 					onClick={() => onSelect(scene.id)}
 					tabIndex={visible ? undefined : -1}
 				>
+					<span className="room-hero-keypad-label">{scene.label}</span>
 					<span className="room-hero-keypad-led" aria-hidden="true" />
-					{scene.label}
 				</button>
 			))}
+			<span className="room-hero-keypad-brand" aria-hidden="true">
+				Lutron
+			</span>
 		</div>
 	);
 }
 
-// Bottom-left corner, mirroring .room-hero-controls' bottom-right anchor —
+// Bottom-left corner, mirroring .room-hero-keypad's bottom-right anchor —
 // a real RA3 keypad wouldn't have a "day/night" button on it, so this reads
 // as its own separate control (more like a schedule/astro override) rather
 // than a 5th keypad button. A compact sun/moon slider (loosely inspired by
@@ -664,9 +721,7 @@ export default function RoomHeroR3F() {
 				</Canvas>
 			</div>
 			<SplashOverlay visible={SHOTS[activeIndex].id === "default"} />
-			<div className="room-hero-controls">
-				<KeypadPanel visible={isControlsShot} activeSceneId={activeSceneId} onSelect={setActiveSceneId} />
-			</div>
+			<KeypadPanel visible={isControlsShot} activeSceneId={activeSceneId} onSelect={setActiveSceneId} />
 			<DayNightToggle visible={isControlsShot} isNight={isNight} onChange={setIsNight} />
 			{SHOT_TRIGGER_MODE !== "auto" && <ShotNav activeIndex={activeIndex} onSelect={selectShot} />}
 		</>

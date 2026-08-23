@@ -321,8 +321,8 @@ section {
    pieces below: .hero-room (outer section) → .room-hero-visual (canvas
    positioning box) → .room-hero-canvas-wrap (fade-in wrapper around the
    <Canvas>) → .room-hero-shots (camera shot nav pills), .room-hero-splash
-   (landing text, default shot only), .room-hero-controls (keypad + day/night
-   toggle, Controls shot only). */
+   (landing text, default shot only), .room-hero-keypad (Lutron-style
+   keypad, Controls shot only), .room-hero-daynight (day/night toggle). */
 
 /* Deliberately its own class rather than a .hero variant: unlike every
    other page's short text banner, this is meant to fill the viewport, so
@@ -372,22 +372,65 @@ section {
 }
 
 /* Camera shot nav — the pill row for switching between preset camera
-   angles (Overview, Shading, Lighting, Controls, Networking). */
-/* Keeps at least 1.25rem clear on each side of the viewport (matching
-   .room-hero-controls' own margin) so this never touches or overflows the
-   edges. On its own that would just clip/overflow the row on narrow
-   phones - see the max-width query below, which tightens the
-   spacing so the same five items actually fit instead. */
+   angles (Overview, Shades, Lighting, Controls, Data). */
+/* left:50% + transform (not left:1.25rem + right:1.25rem) so this always
+   stays truly centered, even once content can't fit within the
+   1.25rem-inset span. That combination looks equivalent at a glance, but
+   isn't: with left AND right both pinned, an absolutely positioned flex
+   container's width, height and both margins are all simultaneously
+   "known" once content forces it wider than the available span (an
+   over-constrained box per CSS2.1), and browsers resolve that by
+   dropping 'right' and keeping 'left' fixed — so the box (and everything
+   in it) drifts left instead of staying centered, exactly like a
+   still-picture would list to one side if you moved its actual center a
+   little at a time only in one direction. left:50% + translateX(-50%)
+   has no such case: centering is computed straight from the box's own
+   rendered width, so it's exact whether that width is comfortably
+   fit-content or clamped all the way down to max-width.
+   width:fit-content + max-width:calc(100% - 2.5rem) is what keeps that
+   1.25rem clearance — matching .room-hero-keypad's and
+   .room-hero-daynight's own margins — once content is too wide to fit:
+   fit-content's definition is already capped at its containing block's
+   available space, so max-width (not right) is what defines that
+   available span here. (A flex container's *auto* width doesn't
+   shrink-to-fit the same way a block's does — it stretches to fill all
+   available space instead — which is why this needs the explicit
+   fit-content keyword rather than leaving width unset.)
+   gap/padding below are fluid (not a breakpoint) for the same reason: a
+   hard jump at one viewport width reads as a snap, where this tightens
+   continuously instead — but CSS has no way to measure "am I actually
+   being squeezed" on its own, so that has to be told to it:
+   --shots-natural-width is the row's own full-size (max gap/padding)
+   content width, measured with DevTools at a wide viewport (re-measure
+   and update it if the shot labels ever change).
+   --shots-deficit turns that into a 0–1 ratio: 0 for any viewport with
+   room to spare (still fully hugging content, centered — not "shrinking
+   a little" the way a plain vw formula would already be doing well
+   before the row is actually constrained), climbing to 1 exactly once
+   gap/padding have given up all the space they can. That "exactly" is
+   what 4.2rem is doing, not a tuned-by-eye number: it's the sum of what
+   giving up all of gap's and both paddings' own max→min ranges actually
+   frees, 4 × 0.25rem (gap) + 2 × 0.1rem (this padding) + 10 × 0.3rem
+   (each button's own left+right padding) = 4.2rem — i.e. exactly how far
+   past --shots-natural-width the deficit can grow while gap/padding are
+   still able to absorb all of it, so the row's content width keeps
+   pace with the shrinking margin with no slack and no overflow either
+   way. Structural (5 buttons, these specific deltas), not
+   label-text-dependent, so — unlike --shots-natural-width — it doesn't
+   need touching when the labels change. */
 .room-hero-shots {
+  --shots-natural-width: 20.9rem;
+  --shots-deficit: clamp(0, calc((var(--shots-natural-width) - (100vw - 2.5rem)) / 4.2rem), 1);
   position: absolute;
   left: 50%;
   bottom: 1rem;
   transform: translateX(-50%);
+  width: fit-content;
+  max-width: calc(100% - 2.5rem);
   z-index: 1;
   display: flex;
-  gap: 0.4rem;
-  padding: 0.4rem;
-  max-width: calc(100% - 2.5rem);
+  gap: calc(0.4rem - var(--shots-deficit) * 0.25rem);
+  padding: calc(0.4rem - var(--shots-deficit) * 0.1rem);
   background-color: color-mix(in srgb, var(--color-bg) 40%, transparent);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -406,7 +449,7 @@ section {
   background: none;
   border: none;
   border-radius: var(--radius);
-  padding: 0.4rem 0.7rem;
+  padding: 0.4rem calc(0.7rem - var(--shots-deficit) * 0.3rem);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -418,22 +461,6 @@ section {
 .room-hero-shots button.is-active {
   background-color: var(--color-primary);
   color: var(--color-primary-contrast);
-}
-
-/* Tightens the nav pill row's spacing on narrow phones so the same five
-   items (eye icon + 4 shot labels) actually fit within max-width above
-   instead of overflowing past the viewport edges - reduces gaps and
-   button padding only, not font-size, so labels stay fully readable.
-   Still tight under ~340px; not worth chasing further than that. */
-@media (max-width: 420px) {
-  .room-hero-shots {
-    gap: 0.15rem;
-    padding: 0.3rem;
-  }
-
-  .room-hero-shots button {
-    padding: 0.4rem 0.4rem;
-  }
 }
 
 /* Landing splash — only shown on the default shot (see SplashOverlay in
@@ -486,44 +513,40 @@ section {
   align-items: center;
 }
 
-/* Controls column — only on the Controls shot: just the keypad now (the
-   day/night toggle moved to its own bottom-left anchor — see
-   .room-hero-daynight below), anchored to the bottom-right corner (see
-   KeypadPanel in RoomHeroR3F.tsx). Not centered like the splash: this is a
-   small real control, not the visual focus of the shot — the room's
-   lighting response is. Corner-anchored rather than vertically centered so
-   it stays out of the way on mobile instead of covering the middle of the
-   scene.
+/* Modeled closely on a real Lutron RadioRA 3 keypad (the RRST-W4B-WH,
+   4-button: All On / Entertain / Relax / All Off) — deliberately literal
+   hex colors below, not the site's theme tokens, since the point is
+   matching that specific product's plastic/label/LED colors rather than
+   fitting this site's palette. Just the switch module itself (the rounded
+   button cluster), not the surrounding wall faceplate — this sits directly
+   over the 3D scene, so the plate would just be extra visual weight with
+   nothing to attach to.
+   Only shown on the Controls shot (see KeypadPanel in RoomHeroR3F.tsx),
+   corner-anchored rather than centered like the splash: this is a small
+   real control, not the visual focus of the shot — the room's lighting
+   response is. Corner-anchored rather than vertically centered so it stays
+   out of the way on mobile instead of covering the middle of the scene.
    bottom: 4.5rem clears .room-hero-shots (the nav pill row) — measured
    directly: that bar sits at bottom:1rem and is ~2.9rem tall, so its top
-   edge is ~3.9rem up from the viewport bottom. This stack and the nav bar
-   are never guaranteed horizontal clearance (nav bar is centered, this is
+   edge is ~3.9rem up from the viewport bottom. This and the nav bar are
+   never guaranteed horizontal clearance (nav bar is centered, this is
    right-anchored, and on narrow screens their x-ranges can genuinely
    overlap), so the real fix is keeping them vertically stacked — this
    value must stay above ~3.9rem or they can collide on small screens. */
-.room-hero-controls {
+.room-hero-keypad {
   position: absolute;
   right: 1.25rem;
   bottom: 4.5rem;
   z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
   width: 8.5rem;
-}
-
-/* Mimics a 4-button Lutron RadioRA 3 keypad (All On / Entertain / Relax /
-   All Off). No fade-in delay unlike the splash, since arriving here is
-   already a deliberate choice to use it. */
-.room-hero-keypad {
   display: flex;
   flex-direction: column;
-  padding: 0.4rem;
-  border-radius: var(--radius);
-  background-color: color-mix(in srgb, var(--color-bg) 40%, transparent);
-  border: 1px solid var(--color-border);
+  aspect-ratio: 1 / 2;
+  padding: 0.2rem;
+  border-radius: 0.55rem;
+  background-color: #e6e6e6;
+  border: 1px solid #d0d0d0;
   box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(8px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.35s ease;
@@ -535,43 +558,111 @@ section {
 }
 
 .room-hero-keypad button {
+  position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 0.5rem;
   font: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-text);
-  background: none;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #8a8a8a;
+  background-color: #f7f7f7;
   border: none;
-  border-top: 1px solid var(--color-border);
-  padding: 0.65rem 0.5rem;
+  border-top: 1px solid #cbcbcb;
+  padding: 0.55rem 0.6rem;
+  flex: 1;
   cursor: pointer;
   text-align: left;
 }
 
 .room-hero-keypad button:first-child {
   border-top: none;
+  border-top-left-radius: 0.4rem;
+  border-top-right-radius: 0.4rem;
 }
 
+.room-hero-keypad button:last-child {
+  border-bottom-left-radius: 0.4rem;
+  border-bottom-right-radius: 0.4rem;
+}
+
+.room-hero-keypad-label {
+  padding-top: 0.1rem;
+}
+
+/* The lit/unlit indicator — a slim vertical bar at the button's right edge,
+   matching the real keypad's LED style (a thin backlit line, not a round
+   dot). Off is plain light gray with no shadow — a glow on an unlit
+   indicator would read as light being emitted when it isn't. The active
+   button's indicator lights up white with a soft glow instead, since that
+   glow is standing in for actual emitted light. */
 .room-hero-keypad-led {
-  width: 0.4rem;
-  height: 0.4rem;
-  border-radius: 50%;
-  background-color: var(--color-border);
+  align-self: center;
+  width: 2px;
+  height: 1.1rem;
+  border-radius: 999px;
+  background-color: #c9c9c9;
   flex-shrink: 0;
 }
 
-.room-hero-keypad button.is-active {
-  color: var(--color-primary);
+.room-hero-keypad button.is-active .room-hero-keypad-led {
+  background-color: #ffffff;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.9);
 }
 
-.room-hero-keypad button.is-active .room-hero-keypad-led {
-  background-color: #34d399;
+.room-hero-keypad-brand {
+  position: absolute;
+  left: 0.6rem;
+  bottom: 0.35rem;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #b0b0b0;
+  pointer-events: none;
+}
+
+/* Shrinks the whole keypad on the smallest phones — 450px comfortably
+   covers even the largest mobile widths (~440px), rather than tying this
+   to a specific device. width/aspect-ratio still fully determine the
+   height, so every dimension below is just the base rule's value scaled
+   down by roughly the same amount. */
+@media (max-width: 450px) {
+  .room-hero-keypad {
+    width: 7rem;
+    padding: 0.15rem;
+    border-radius: 0.45rem;
+  }
+
+  .room-hero-keypad button {
+    font-size: 0.62rem;
+    padding: 0.45rem 0.5rem;
+  }
+
+  .room-hero-keypad button:first-child {
+    border-top-left-radius: 0.3rem;
+    border-top-right-radius: 0.3rem;
+  }
+
+  .room-hero-keypad button:last-child {
+    border-bottom-left-radius: 0.3rem;
+    border-bottom-right-radius: 0.3rem;
+  }
+
+  .room-hero-keypad-led {
+    height: 0.9rem;
+  }
+
+  .room-hero-keypad-brand {
+    left: 0.5rem;
+    bottom: 0.28rem;
+    font-size: 0.45rem;
+  }
 }
 
 /* Day/night toggle — a compact sun/moon slider, bottom-left, mirroring
-   .room-hero-controls' bottom-right anchor (same bottom offset, so both
+   .room-hero-keypad's bottom-right anchor (same bottom offset, so both
    corner elements sit at the same height). Not a 5th keypad button (a real
    RA3 keypad wouldn't have one) or grouped with it — this is a separate
    kind of override, more like a schedule/astro control than a lighting

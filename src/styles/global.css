@@ -446,7 +446,7 @@ keypad, Controls shot only), .room-hero-daynight (day/night toggle).
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url(/images/bg-homepage.png);
+  background-image: url(/images/bg-homepage.webp);
   background-size: cover;
   background-position: center;
   filter: blur(4px);

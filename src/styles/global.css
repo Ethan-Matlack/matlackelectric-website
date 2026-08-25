@@ -396,6 +396,9 @@ homepage's very different full-viewport hero.
 /* =============================================================================
 7. Homepage
 -------------------------------------
+Temporarily using a static homepage while the R3F scene is finalized. Once
+the scene is ready, the top portion of this section will be removed.
+
 The interactive react-three-fiber kitchen scene that fills the homepage's
 hero section. Everything in this section is layout/chrome for that
 component - the scene itself lives in RoomHeroR3F.tsx. Rough map of the
@@ -406,7 +409,6 @@ positioning box) → .room-hero-canvas-wrap (fade-in wrapper around the
 keypad, Controls shot only), .room-hero-daynight (day/night toggle).
 ============================================================================= */
 
-/* Temporary static homepage styling while the R3F scene is finalized */
 /* START TEMPORARY */
 .homepage-bg {
   position: relative;

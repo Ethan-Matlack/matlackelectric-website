@@ -8,7 +8,7 @@
      4. Buttons
      5. Header / Navigation
      6. Hero (text-banner pages)
-     7. Homepage 3D hero (RoomHeroR3F.tsx)
+     7. Homepage
      8. Cards, grid & small UI bits
      9. Contact form (JobTread embed)
      10. Section headings
@@ -49,7 +49,9 @@ rule in this file reads from, instead of repeating literal values.
      so anything sized against 100svh (namely .hero-room) needs to subtract
      this to actually fit in one screen. Kept in sync with .header-inner's
      min-height below. */
-  --header-height: 4rem;
+  --annoucement-height: 1rem;
+  --header-height-inner: 4rem;
+  --header-height: calc(var(--annoucement-height) + var(--header-height-inner));
 }
 
 /* =============================================================================
@@ -194,6 +196,23 @@ or a hamburger dropdown, depending on whether they fit (see
 Header.astro's fit-check script).
 ============================================================================= */
 
+.annoucement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--annoucement-height);
+  padding-block: 0.3rem;
+  position: relative;
+  text-align: center;
+  background-color: var(--color-primary);
+}
+
+.annoucement p {
+  font-size: 0.75rem;
+  color: var(--color-primary-contrast);
+  margin: 0;
+}
+
 .site-header {
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-bg);
@@ -206,7 +225,7 @@ Header.astro's fit-check script).
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: var(--header-height);
+  min-height: var(--header-height-inner);
   padding-block: 0.9rem;
   position: relative;
 }
@@ -394,8 +413,11 @@ homepage's very different full-viewport hero.
 }
 
 /* =============================================================================
-7. Homepage 3D hero (RoomHeroR3F.tsx)
+7. Homepage
 -------------------------------------
+Temporarily using a static homepage while the R3F scene is finalized. Once
+the scene is ready, the top portion of this section will be removed.
+
 The interactive react-three-fiber kitchen scene that fills the homepage's
 hero section. Everything in this section is layout/chrome for that
 component - the scene itself lives in RoomHeroR3F.tsx. Rough map of the
@@ -405,6 +427,56 @@ positioning box) → .room-hero-canvas-wrap (fade-in wrapper around the
 (landing text, default shot only), .room-hero-keypad (Lutron-style
 keypad, Controls shot only), .room-hero-daynight (day/night toggle).
 ============================================================================= */
+
+/* START TEMPORARY */
+.homepage-bg {
+  position: relative;
+  overflow: hidden;
+  height: calc(100svh - var(--header-height));
+  min-height: 24rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.homepage-bg::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url(/images/bg-homepage.webp);
+  background-size: cover;
+  background-position: center;
+  filter: blur(4px);
+  transform: scale(1.02);
+  z-index: -1;
+}
+
+.homepage-splash {
+  position: absolute;
+  z-index: 1;
+  width: min(60rem, calc(100% - 2rem));
+  padding: 2.5rem;
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--color-bg) 40%, transparent);
+  backdrop-filter: blur(8px);
+  text-align: center;
+}
+
+.homepage-splash h1 {
+  font-size: clamp(1.5rem, 1rem + 2vw, 3.5rem);
+}
+
+.homepage-splash p {
+  font-size: clamp(1rem, 0.5rem + 1vw, 2rem);
+}
+
+.homepage-splash p:last-child {
+  margin-bottom: 0;
+}
+/* END TEMPORARY */
 
 /* Deliberately its own class rather than a .hero variant: unlike every
    other page's short text banner, this is meant to fill the viewport, so
@@ -416,7 +488,6 @@ keypad, Controls shot only), .room-hero-daynight (day/night toggle).
   overflow: hidden;
   height: calc(100svh - var(--header-height));
   min-height: 24rem;
-  border-bottom: 1px solid var(--color-border);
   /* Static screenshot of the default shot's scene ONLY (no splash text or
      nav baked in - those are real DOM, sized by real CSS, and would scale
      wrong as raster pixels under background-size:cover at any viewport
@@ -426,7 +497,7 @@ keypad, Controls shot only), .room-hero-daynight (day/night toggle).
      .room-hero-canvas-wrap below fades the real scene in on top of it once
      ready - see RoomHeroR3F.tsx. The splash/nav appear as normal React DOM
      shortly after hydration, independent of the scene's own readiness. */
-  background-image: url("/images/hero-poster.jpg");
+  background-image: url("../images/hero-poster.jpg");
   background-size: cover;
   background-position: center;
 }
@@ -1030,6 +1101,9 @@ similar content block, on About/Partners/Services/etc.
 
 .section-heading p {
   color: var(--color-muted);
+}
+
+.section-heading p:last-child {
   margin-bottom: 0;
 }
 

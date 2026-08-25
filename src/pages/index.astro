@@ -7,9 +7,17 @@ import RoomHeroR3F from "../components/RoomHeroR3F.tsx";
   title="Matlack Electric"
   description="Matlack Electric is a premier residential electrical contractor specializing in remodels and renovations — wiring, low-voltage, custom lighting, EV charging, generators, battery backup, and Lutron smart control."
 >
+  <!-- <link slot="head" rel="preload" as="image" href="/images/hero-poster.jpg" fetchpriority="high" />
   <section class="hero-room">
     <div class="room-hero-visual">
       <RoomHeroR3F client:only="react" />
     </div>
-  </section>
+  </section> -->
+  <link slot="head" rel="preload" as="image" href="/images/bg-homepage.webp" fetchpriority="high" />
+  <div class="homepage-bg">
+    <div class="homepage-splash">
+      <h1>Premier Electrical Craftsmanship for Custom Homes & Remodels</h1>
+      <p>Chattanooga's residential electrical partner for remodels and custom homes - custom lighting and Lutron control systems, built around close collaboration, not a standard package.</p>
+      <a class="btn btn-primary" href="/contact">Contact Us</a>
+    </div>
 </Layout>

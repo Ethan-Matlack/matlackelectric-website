@@ -49,7 +49,9 @@ rule in this file reads from, instead of repeating literal values.
      so anything sized against 100svh (namely .hero-room) needs to subtract
      this to actually fit in one screen. Kept in sync with .header-inner's
      min-height below. */
-  --header-height: 4rem;
+  --annoucement-height: 1rem;
+  --header-height-inner: 4rem;
+  --header-height: calc(var(--annoucement-height) + var(--header-height-inner));
 }
 
 /* =============================================================================
@@ -194,6 +196,23 @@ or a hamburger dropdown, depending on whether they fit (see
 Header.astro's fit-check script).
 ============================================================================= */
 
+.annoucement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--annoucement-height);
+  padding-block: 0.3rem;
+  position: relative;
+  text-align: center;
+  background-color: var(--color-primary);
+}
+
+.annoucement p {
+  font-size: 0.75rem;
+  color: var(--color-primary-contrast);
+  margin: 0;
+}
+
 .site-header {
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-bg);
@@ -206,7 +225,7 @@ Header.astro's fit-check script).
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: var(--header-height);
+  min-height: var(--header-height-inner);
   padding-block: 0.9rem;
   position: relative;
 }
@@ -1082,6 +1101,9 @@ similar content block, on About/Partners/Services/etc.
 
 .section-heading p {
   color: var(--color-muted);
+}
+
+.section-heading p:last-child {
   margin-bottom: 0;
 }
 

@@ -45,13 +45,23 @@ const currentPath = Astro.url.pathname;
 	</div>
 </header>
 
-<script>
-	const header = document.querySelector<HTMLElement>(".site-header");
-	const headerInner = document.querySelector<HTMLElement>(".header-inner");
-	const logo = document.querySelector<HTMLElement>(".logo");
-	const toggle = document.querySelector<HTMLButtonElement>(".nav-toggle");
-	const nav = document.querySelector<HTMLElement>(".site-nav");
-	const measure = document.querySelector<HTMLElement>(".nav-measure");
+<script is:inline>
+	// is:inline (rather than Astro's default processed/module script) so this
+	// runs synchronously the instant the parser reaches it - right after the
+	// header markup above, before the browser's next paint. A processed
+	// script gets type="module" and is deferred until after the whole
+	// document parses, which on a full page load (e.g. clicking the logo)
+	// let the header paint once in its default full-nav layout before
+	// checkFit() below could run and add .is-compact, flashing the desktop
+	// nav row on mobile. is:inline skips Astro's TypeScript handling, so the
+	// querySelector generics below are gone - the runtime null checks
+	// immediately after already cover the same ground.
+	const header = document.querySelector(".site-header");
+	const headerInner = document.querySelector(".header-inner");
+	const logo = document.querySelector(".logo");
+	const toggle = document.querySelector(".nav-toggle");
+	const nav = document.querySelector(".site-nav");
+	const measure = document.querySelector(".nav-measure");
 
 	if (header && headerInner && logo && toggle && nav && measure) {
 		// Collapse the menu and flip the a11y state back to closed.
@@ -74,7 +84,7 @@ const currentPath = Astro.url.pathname;
 		// Any click outside the menu or the toggle button closes it.
 		document.addEventListener("click", (event) => {
 			if (!nav.classList.contains("is-open")) return;
-			const target = event.target as Node;
+			const target = event.target;
 			if (nav.contains(target) || toggle.contains(target)) return;
 			closeNav();
 		});

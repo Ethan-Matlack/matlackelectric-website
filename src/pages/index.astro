@@ -7,15 +7,17 @@ import RoomHeroR3F from "../components/RoomHeroR3F.tsx";
   title="Matlack Electric"
   description="Matlack Electric is a premier residential electrical contractor specializing in remodels and renovations — wiring, low-voltage, custom lighting, EV charging, generators, battery backup, and Lutron smart control."
 >
-  <!-- .hero-room's poster is a CSS background-image, which Chrome
-       otherwise schedules at low priority - on a throttled connection it
-       was losing the bandwidth race against the homepage's much larger
-       JS bundle and 3D model, delaying the page's LCP. This preload with
-       fetchpriority="high" is what Lighthouse's own report recommended. -->
-  <link slot="head" rel="preload" as="image" href="/images/hero-poster.jpg" fetchpriority="high" />
+  <!-- <link slot="head" rel="preload" as="image" href="/images/hero-poster.jpg" fetchpriority="high" />
   <section class="hero-room">
     <div class="room-hero-visual">
       <RoomHeroR3F client:only="react" />
     </div>
-  </section>
+  </section> -->
+  <link slot="head" rel="preload" as="image" href="../src/images/bg-homepage.png" fetchpriority="high" />
+  <div class="homepage-bg">
+    <div class="homepage-splash">
+      <h1>Premier Electrical Craftsmanship for Custom Homes & Remodels</h1>
+      <p>Chattanooga's residential electrical partner for remodels and custom homes - custom lighting and Lutron control systems, built around close collaboration, not a standard package.</p>
+      <a class="btn btn-primary" href="/contact">Contact Us</a>
+    </div>
 </Layout>

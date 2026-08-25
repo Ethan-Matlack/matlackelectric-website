@@ -971,6 +971,79 @@ as space allows.
   transform: translateX(0.2rem);
 }
 
+/* Compact per-card category pills (Portfolio grid) - distinct from .badge
+   below (sized/spaced for one prominent label, not several packed
+   together), and colored with --color-accent so tags read as secondary
+   metadata rather than competing with primary buttons/badges. Base rule is
+   plain in-flow (used as-is by CaseStudyLayout's hero); the .card-link
+   override below pins it to the card's bottom edge instead. */
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Inside a card, pin the tag row to the bottom-left, level with the
+   chevron, instead of flowing right after the description - so it lands
+   in the same place regardless of how long each card's text is.
+   [data-tags] is only set by CardLink when tags exist (see CardLink.astro),
+   so this reserves the extra bottom padding only on cards that need it. */
+.card-link[data-tags] {
+  padding-bottom: 3.5rem;
+}
+
+.card-link .tag-list {
+  position: absolute;
+  left: 1.5rem;
+  right: 3rem;
+  bottom: 1.5rem;
+  margin-top: 0;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.2em 0.65em;
+  border-radius: 999px;
+  background-color: var(--color-accent);
+  color: var(--color-primary-contrast);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/* Toggle-button row above the Portfolio grid, filtering cards by the tags
+   set in src/data/portfolio.ts (see portfolio.astro's own script). Active
+   state matches .room-hero-shots button.is-active - the site's one other
+   toggle-button pattern. */
+.portfolio-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+}
+
+.filter-chip.is-active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
 /* Small uppercase pill label. Carried over from the starter template -
    currently not used anywhere on the site. */
 .badge {
@@ -1203,11 +1276,15 @@ is Service-page-only; section 14 (case studies) is portfolio-only.
   padding-inline: 1.25em;
 }
 
-.detail-page-wrap li {
+/* :not(.tag) - this is meant for actual prose bullet lists in case study
+   body content; without the exclusion it also matches .tag-list's <li>
+   pills wherever a .tag-list sits inside .detail-page-wrap (e.g.
+   CaseStudyLayout's hero), unevenly offsetting every tag but the last. */
+.detail-page-wrap li:not(.tag) {
   margin-bottom: 0.4em;
 }
 
-.detail-page-wrap li:last-child {
+.detail-page-wrap li:not(.tag):last-child {
   margin-bottom: 0;
 }
 
@@ -1323,6 +1400,68 @@ whatever order suits a given project, not a fixed template.
 
 .case-study-split p {
   margin-bottom: 0;
+}
+
+/* Crop every Portfolio index photo to a consistent 16:9, centered,
+   regardless of the source image's native aspect ratio - keeps the
+   alternating rows visually uniform even before real (differently-shaped)
+   project photos replace the placeholder. Scoped to .portfolio-row rather
+   than added to .case-study-split img above, since case studies' own
+   image blocks should keep each photo's natural proportions. */
+.portfolio-row img {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Modifier making a .case-study-split usable as a whole-block link instead
+   of static content - the Portfolio index's alternating project rows reuse
+   this same image+text pattern, just wrapped in an <a>. Reset the link's
+   default styling and add a hover cue on the image/chevron; kept as its
+   own class rather than folded into .case-study-split so the plain,
+   non-link version used inside case studies is unaffected. */
+.case-study-split-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.case-study-split-link img {
+  transition: transform 0.2s ease;
+}
+
+.case-study-split-link:hover img,
+.case-study-split-link:focus img {
+  transform: scale(1.02);
+}
+
+/* The "this leads somewhere" cue for a .portfolio-row - same "always
+   visible, not hover-only" reasoning as .card-link-chevron (hover doesn't
+   exist on mobile). */
+.portfolio-row-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.portfolio-row-cta svg {
+  transition: transform 0.15s ease;
+}
+
+.case-study-split-link:hover .portfolio-row-cta svg,
+.case-study-split-link:focus .portfolio-row-cta svg {
+  transform: translateX(0.2rem);
+}
+
+/* Vertical stack of .portfolio-row entries (Portfolio index) - generous
+   gap does the separating, no divider lines, so a filtered-out row simply
+   closing the gap around it doesn't leave a stray border behind. */
+.portfolio-rows {
+  display: flex;
+  flex-direction: column;
+  /* gap: 3rem; */
 }
 
 .case-study-testimonial {

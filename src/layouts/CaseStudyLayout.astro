@@ -13,10 +13,11 @@ interface Props {
 	description: string;
 	projectName: string;
 	tagline: string;
+	tags?: string[];
 	testimonial?: Testimonial;
 }
 
-const { title, description, projectName, tagline, testimonial } = Astro.props;
+const { title, description, projectName, tagline, tags, testimonial } = Astro.props;
 ---
 
 <Layout title={title} description={description}>
@@ -28,6 +29,15 @@ const { title, description, projectName, tagline, testimonial } = Astro.props;
 			<div class="container">
 				<h1>{projectName}</h1>
 				<p>{tagline}</p>
+				{
+					tags && tags.length > 0 && (
+						<ul class="tag-list">
+							{tags.map((tag) => (
+								<li class="tag">{tag}</li>
+							))}
+						</ul>
+					)
+				}
 			</div>
 		</section>
 

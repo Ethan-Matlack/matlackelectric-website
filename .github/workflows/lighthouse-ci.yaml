@@ -1,0 +1,123 @@
+name: Lighthouse CI
+
+# Fires directly on opening/updating a PR into main - not on every plain
+# push to dev, which is the actual noise source (Cloudflare's Git
+# integration rebuilds+deploys on every push, dev included). Triggering
+# here instead of on Cloudflare's check_run means we don't need to
+# reverse-engineer which check_run was "the PR one" vs "just a dev push" -
+# we only ever run when a PR into main actually exists/changes.
+#
+# The trade-off: opening a PR and Cloudflare's build finishing are two
+# independent async events, so the first step below polls the "Workers
+# Builds: matlackelectric-website" check run (confirmed exact name via the
+# GitHub API against this repo's real check runs) until it completes,
+# before auditing anything.
+#
+# The URL itself is just https://<branch>-matlackelectric-website...,
+# Cloudflare's stable per-branch "Preview Alias" - confirmed live via curl.
+# The per-build "Preview URL" Cloudflare also reports (a random Version ID,
+# unrelated to the git commit sha despite looking similar) would need to be
+# scraped out of the check run's summary text instead; the alias avoids
+# that entirely since it's constructible from data GitHub already gives
+# this workflow.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      # Polls rather than assuming Cloudflare's build already finished by
+      # the time this workflow starts - it usually hasn't. 10 min timeout,
+      # checked every 15s; adjust if Cloudflare's builds ever run longer.
+      - name: Wait for Cloudflare's build to complete
+        id: wait
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const sha = context.payload.pull_request.head.sha;
+            const checkName = "Workers Builds: matlackelectric-website";
+            const timeoutMs = 10 * 60 * 1000;
+            const pollMs = 15 * 1000;
+            const start = Date.now();
+
+            while (Date.now() - start < timeoutMs) {
+              const { data } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: sha,
+                check_name: checkName,
+              });
+              const run = data.check_runs[0];
+              if (run && run.status === "completed") {
+                core.setOutput("conclusion", run.conclusion);
+                return;
+              }
+              await new Promise((resolve) => setTimeout(resolve, pollMs));
+            }
+            core.setFailed(`Timed out waiting for "${checkName}" to complete.`);
+
+      - name: Run Lighthouse
+        id: lighthouse
+        if: steps.wait.outputs.conclusion == 'success'
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            https://${{ github.event.pull_request.head.ref }}-matlackelectric-website.ethan-5da.workers.dev/
+            https://${{ github.event.pull_request.head.ref }}-matlackelectric-website.ethan-5da.workers.dev/portfolio/
+          uploadArtifacts: false
+          temporaryPublicStorage: true
+
+      - name: Format results
+        id: format
+        if: steps.wait.outputs.conclusion == 'success'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+
+            const resultsPath = "${{ steps.lighthouse.outputs.resultsPath }}";
+            const manifest = JSON.parse(fs.readFileSync(path.join(resultsPath, "manifest.json"), "utf8"));
+            const links = JSON.parse('${{ steps.lighthouse.outputs.links }}' || "{}");
+
+            const label = {
+              performance: "Performance",
+              accessibility: "Accessibility",
+              "best-practices": "Best Practices",
+              seo: "SEO",
+              pwa: "PWA",
+            };
+            const emoji = (score) => (score >= 0.9 ? "🟢" : score >= 0.5 ? "🟠" : "🔴");
+
+            const rows = manifest
+              .filter((run) => run.isRepresentativeRun)
+              .map((run) => {
+                const scores = Object.entries(run.summary)
+                  .map(([cat, score]) => `${emoji(score)} ${label[cat] ?? cat} ${Math.round(score * 100)}`)
+                  .join(" &nbsp;·&nbsp; ");
+                const reportLink = links[run.url];
+                const urlCell = reportLink ? `[${run.url}](${reportLink})` : run.url;
+                return `| ${urlCell} | ${scores} |`;
+              })
+              .join("\n");
+
+            core.setOutput(
+              "message",
+              ["### 🔦 Lighthouse report", "", "| Page | Scores |", "| --- | --- |", rows].join("\n"),
+            );
+
+      # No `number`/`number_force` needed - triggered by pull_request, the
+      # action picks up the PR from context automatically.
+      - name: Post sticky PR comment
+        if: steps.wait.outputs.conclusion == 'success'
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: lighthouse
+          message: ${{ steps.format.outputs.message }}

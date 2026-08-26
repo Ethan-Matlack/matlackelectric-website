@@ -1217,6 +1217,15 @@ is Service-page-only; section 14 (case studies) is portfolio-only.
   min-height: 100%;
 }
 
+/* Same containing-block mechanism as .detail-page-wrap above, for
+   BackToTopFab on the Portfolio index page - kept as its own class rather
+   than reusing .detail-page-wrap since that one's scoped (by name and by
+   the section comment above) to the two detail-page layouts. */
+.portfolio-page-wrap {
+  position: relative;
+  min-height: 100%;
+}
+
 /* Fixed by default - always reachable without scrolling, from anywhere on
    the page. BackToIndexFab's IntersectionObserver swaps this to
    .is-above-footer (position: absolute, anchored to .detail-page-wrap
@@ -1252,6 +1261,25 @@ is Service-page-only; section 14 (case studies) is portfolio-only.
 .detail-back-fab:focus {
   background-color: var(--color-primary-dark);
   color: var(--color-primary-contrast);
+}
+
+/* BackToTopFab (Portfolio index page) - reuses .detail-back-fab above for
+   the pill/color/shadow/position styling, but as a <button> (reset border/
+   cursor/font, which .detail-back-fab's <a> didn't need) and hidden by
+   default until scrolled down - see BackToTopFab.astro's own script for
+   the show/hide and footer hand-off logic. */
+.back-to-top-fab {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.back-to-top-fab.is-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* List styling for a detail layout's main content slot (capabilities

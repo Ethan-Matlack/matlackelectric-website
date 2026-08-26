@@ -63,6 +63,19 @@ jobs:
             }
             core.setFailed(`Timed out waiting for "${checkName}" to complete.`);
 
+      # lighthouse-ci-action's upload step (temporaryPublicStorage: true
+      # below) shells out to `git` for build metadata (commit hash, time,
+      # message, author, branch, ancestor hash) to attach to the report -
+      # none of that exists without an actual checkout, hence this step
+      # even though nothing else here needs the repo's source. Pinned to
+      # the exact commit under audit rather than just the branch tip, in
+      # case more gets pushed before this step runs.
+      - name: Checkout
+        if: steps.wait.outputs.conclusion == 'success'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
       - name: Run Lighthouse
         id: lighthouse
         if: steps.wait.outputs.conclusion == 'success'

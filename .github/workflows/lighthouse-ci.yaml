@@ -84,6 +84,12 @@ jobs:
           urls: |
             https://${{ github.event.pull_request.head.ref }}-matlackelectric-website.ethan-5da.workers.dev/
             https://${{ github.event.pull_request.head.ref }}-matlackelectric-website.ethan-5da.workers.dev/portfolio/
+          # lighthouserc.json (repo root) skips the is-crawlable SEO audit -
+          # it's the single highest-weighted SEO check (93/23, vs. weight 1
+          # for the others) and it always fails here since preview URLs are
+          # intentionally marked noindex, which has nothing to do with the
+          # actual site's SEO. The rest of the SEO category still runs.
+          configPath: ./.github/workflows/lighthouserc.json
           uploadArtifacts: false
           temporaryPublicStorage: true
 
@@ -94,13 +100,12 @@ jobs:
         with:
           script: |
             const fs = require("fs");
-            const path = require("path");
 
-            const resultsPath = "${{ steps.lighthouse.outputs.resultsPath }}";
-            const manifest = JSON.parse(fs.readFileSync(path.join(resultsPath, "manifest.json"), "utf8"));
+            const manifestPath = "${{ steps.lighthouse.outputs.resultsPath }}/manifest.json";
+            const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
             const links = JSON.parse('${{ steps.lighthouse.outputs.links }}' || "{}");
 
-            const label = {
+            const categoryLabel = {
               performance: "Performance",
               accessibility: "Accessibility",
               "best-practices": "Best Practices",
@@ -109,22 +114,37 @@ jobs:
             };
             const emoji = (score) => (score >= 0.9 ? "🟢" : score >= 0.5 ? "🟠" : "🔴");
 
-            const rows = manifest
+            // displayValue is Lighthouse's own already-formatted string
+            // (e.g. "1.2 s", "150 ms") - no unit conversion needed here.
+            const metricAuditIds = {
+              FCP: "first-contentful-paint",
+              LCP: "largest-contentful-paint",
+              TBT: "total-blocking-time",
+            };
+
+            const sections = manifest
               .filter((run) => run.isRepresentativeRun)
               .map((run) => {
-                const scores = Object.entries(run.summary)
-                  .map(([cat, score]) => `${emoji(score)} ${label[cat] ?? cat} ${Math.round(score * 100)}`)
-                  .join(" &nbsp;·&nbsp; ");
-                const reportLink = links[run.url];
-                const urlCell = reportLink ? `[${run.url}](${reportLink})` : run.url;
-                return `| ${urlCell} | ${scores} |`;
-              })
-              .join("\n");
+                // manifest's own `summary` only has category scores - the
+                // per-metric values (FCP/LCP/TBT) live in the full LHR JSON.
+                const lhr = JSON.parse(fs.readFileSync(run.jsonPath, "utf8"));
 
-            core.setOutput(
-              "message",
-              ["### 🔦 Lighthouse report", "", "| Page | Scores |", "| --- | --- |", rows].join("\n"),
-            );
+                const scores = Object.entries(run.summary)
+                  .map(([cat, score]) => `${emoji(score)} **${categoryLabel[cat] ?? cat}** ${Math.round(score * 100)}`)
+                  .join(" &nbsp;·&nbsp; ");
+
+                const metrics = Object.entries(metricAuditIds)
+                  .map(([short, auditId]) => `**${short}** ${lhr.audits[auditId]?.displayValue ?? "n/a"}`)
+                  .join(" &nbsp;·&nbsp; ");
+
+                const reportLink = links[run.url];
+                const reportLine = reportLink ? `[View full report →](${reportLink})` : "_No report link available_";
+
+                return [`#### ${run.url}`, "", scores, "", metrics, "", reportLine].join("\n");
+              })
+              .join("\n\n---\n\n");
+
+            core.setOutput("message", ["### 🔦 Lighthouse report", "", sections].join("\n"));
 
       # No `number`/`number_force` needed - triggered by pull_request, the
       # action picks up the PR from context automatically.

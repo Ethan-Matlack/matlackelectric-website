@@ -1,0 +1,122 @@
+name: Lighthouse production badges
+
+# Fires on every push to main - covers both a normal PR merge and a direct
+# hotfix push, so the README badges track whatever's actually live rather
+# than just "the last merged PR" (those usually coincide, but not always).
+#
+# Results are written to a Gist via the GitHub API, never committed into
+# this repo - a Gist isn't part of the repo's commit graph, so updating it
+# can't fire a push/pull_request event here and there's no loop to create,
+# unlike committing the badge data into a branch of this repo would risk.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      # Same "wait for Cloudflare's build" pattern as lighthouse-ci.yaml -
+      # see that file for why polling instead of assuming it's done already.
+      - name: Wait for Cloudflare's build to complete
+        id: wait
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const sha = context.sha;
+            const checkName = "Workers Builds: matlackelectric-website";
+            const timeoutMs = 10 * 60 * 1000;
+            const pollMs = 15 * 1000;
+            const start = Date.now();
+
+            while (Date.now() - start < timeoutMs) {
+              const { data } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: sha,
+                check_name: checkName,
+              });
+              const run = data.check_runs[0];
+              if (run && run.status === "completed") {
+                core.setOutput("conclusion", run.conclusion);
+                return;
+              }
+              await new Promise((resolve) => setTimeout(resolve, pollMs));
+            }
+            core.setFailed(`Timed out waiting for "${checkName}" to complete.`);
+
+      # Needed for lighthouse-ci-action's git-metadata gathering, same as
+      # in lighthouse-ci.yaml - see that file's comment for why.
+      - name: Checkout
+        if: steps.wait.outputs.conclusion == 'success'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+
+      # Production has one fixed, real domain - unlike the PR workflow,
+      # there's no branch-alias URL to construct here. No configPath here
+      # either, deliberately: lighthouserc.json skips the is-crawlable SEO
+      # audit specifically because PR preview URLs are noindex'd - verified
+      # new.matlackelectric.com has no X-Robots-Tag/meta-robots noindex at
+      # all, so that audit is meaningful here and should run normally.
+      - name: Run Lighthouse
+        id: lighthouse
+        if: steps.wait.outputs.conclusion == 'success'
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: https://new.matlackelectric.com/
+          uploadArtifacts: false
+
+      # Auth'd with the gist-scoped PAT (not the default GITHUB_TOKEN,
+      # which has no Gist access at all - Gists are account-level, not
+      # repo-level) so github.rest.gists.update works below. See
+      # README/setup notes for creating LIGHTHOUSE_GIST_TOKEN and the gist itself.
+      - name: Update Gist badges
+        if: steps.wait.outputs.conclusion == 'success'
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.LIGHTHOUSE_GIST_TOKEN }}
+          script: |
+            const fs = require("fs");
+
+            const manifestPath = "${{ steps.lighthouse.outputs.resultsPath }}/manifest.json";
+            const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+            const run = manifest.find((r) => r.isRepresentativeRun);
+            if (!run) return core.setFailed("No representative Lighthouse run found.");
+
+            const color = (score) => (score >= 0.9 ? "brightgreen" : score >= 0.5 ? "orange" : "red");
+            const categoryLabel = {
+              performance: "Performance",
+              accessibility: "Accessibility",
+              "best-practices": "Best Practices",
+              seo: "SEO",
+            };
+            // Filenames must already exist in the target gist - see setup
+            // notes. Update leaves any other files in the gist untouched.
+            const gistFile = {
+              performance: "lighthouse-performance.json",
+              accessibility: "lighthouse-accessibility.json",
+              "best-practices": "lighthouse-best-practices.json",
+              seo: "lighthouse-seo.json",
+            };
+
+            const files = {};
+            for (const [cat, score] of Object.entries(run.summary)) {
+              if (!gistFile[cat]) continue;
+              files[gistFile[cat]] = {
+                content: JSON.stringify({
+                  schemaVersion: 1,
+                  label: categoryLabel[cat] ?? cat,
+                  message: String(Math.round(score * 100)),
+                  color: color(score),
+                }),
+              };
+            }
+
+            await github.rest.gists.update({
+              gist_id: "f241a8d7f1960694987ed02c109ada56",
+              files,
+            });

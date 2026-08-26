@@ -1,0 +1,23 @@
+---
+import type { GetStaticPaths } from "astro";
+import PortfolioProjectLayout from "../../layouts/PortfolioProjectLayout.astro";
+import PortfolioProjectBody from "../../components/PortfolioProjectBody.astro";
+import { portfolioProjects, projectImages } from "../../data/portfolio";
+
+// One static page per src/data/portfolio.ts entry - adding a new project
+// is purely a data change (an object in portfolioProjectInputs plus
+// photos in src/images/portfolio/<slug>/), never a new file.
+export const getStaticPaths = (() => {
+	return portfolioProjects.map((project) => ({
+		params: { slug: project.slug },
+		props: { project },
+	}));
+}) satisfies GetStaticPaths;
+
+const { project } = Astro.props;
+const images = projectImages(project.slug);
+---
+
+<PortfolioProjectLayout slug={project.slug}>
+	<PortfolioProjectBody blocks={project.content} images={images} />
+</PortfolioProjectLayout>

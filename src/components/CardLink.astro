@@ -5,12 +5,22 @@
 // more" competes with the UI-driven look the rest of the site goes for.
 interface Props {
 	href: string;
+	tags?: string[];
 }
-const { href } = Astro.props;
+const { href, tags } = Astro.props;
 ---
 
-<a class="card card-link" href={href}>
+<a class="card card-link" href={href} data-tags={tags?.length ? tags.join(",") : undefined}>
 	<slot />
+	{
+		tags && tags.length > 0 && (
+			<ul class="tag-list">
+				{tags.map((tag) => (
+					<li class="tag">{tag}</li>
+				))}
+			</ul>
+		)
+	}
 	<svg
 		class="card-link-chevron"
 		width="18"

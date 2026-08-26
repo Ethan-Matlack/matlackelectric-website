@@ -1,0 +1,183 @@
+name: Lighthouse CI
+
+# Fires directly on opening/updating a PR into main - not on every plain
+# push to dev, which is the actual noise source (Cloudflare's Git
+# integration rebuilds+deploys on every push, dev included). Triggering
+# here instead of on Cloudflare's check_run means we don't need to
+# reverse-engineer which check_run was "the PR one" vs "just a dev push" -
+# we only ever run when a PR into main actually exists/changes.
+#
+# The trade-off: opening a PR and Cloudflare's build finishing are two
+# independent async events, so the first step below polls the "Workers
+# Builds: matlackelectric-website" check run (confirmed exact name via the
+# GitHub API against this repo's real check runs) until it completes,
+# before auditing anything.
+#
+# The URL itself is just https://<branch>-matlackelectric-website...,
+# Cloudflare's stable per-branch "Preview Alias" - confirmed live via curl.
+# The per-build "Preview URL" Cloudflare also reports (a random Version ID,
+# unrelated to the git commit sha despite looking similar) would need to be
+# scraped out of the check run's summary text instead; the alias avoids
+# that entirely since it's constructible from data GitHub already gives
+# this workflow.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      # Polls rather than assuming Cloudflare's build already finished by
+      # the time this workflow starts - it usually hasn't. 10 min timeout,
+      # checked every 15s; adjust if Cloudflare's builds ever run longer.
+      - name: Wait for Cloudflare's build to complete
+        id: wait
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const sha = context.payload.pull_request.head.sha;
+            const checkName = "Workers Builds: matlackelectric-website";
+            const timeoutMs = 10 * 60 * 1000;
+            const pollMs = 15 * 1000;
+            const start = Date.now();
+
+            while (Date.now() - start < timeoutMs) {
+              const { data } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: sha,
+                check_name: checkName,
+              });
+              const run = data.check_runs[0];
+              if (run && run.status === "completed") {
+                core.setOutput("conclusion", run.conclusion);
+                return;
+              }
+              await new Promise((resolve) => setTimeout(resolve, pollMs));
+            }
+            core.setFailed(`Timed out waiting for "${checkName}" to complete.`);
+
+      # lighthouse-ci-action's upload step (temporaryPublicStorage: true
+      # below) shells out to `git` for build metadata (commit hash, time,
+      # message, author, branch, ancestor hash) to attach to the report -
+      # none of that exists without an actual checkout, hence this step
+      # even though nothing else here needs the repo's source. Pinned to
+      # the exact commit under audit rather than just the branch tip, in
+      # case more gets pushed before this step runs.
+      - name: Checkout
+        if: steps.wait.outputs.conclusion == 'success'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Run Lighthouse
+        id: lighthouse
+        if: steps.wait.outputs.conclusion == 'success'
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            https://${{ github.event.pull_request.head.ref }}-matlackelectric-website.ethan-5da.workers.dev/
+            https://${{ github.event.pull_request.head.ref }}-matlackelectric-website.ethan-5da.workers.dev/portfolio/
+          # lighthouserc.json (repo root) skips the is-crawlable SEO audit -
+          # it's the single highest-weighted SEO check (93/23, vs. weight 1
+          # for the others) and it always fails here since preview URLs are
+          # intentionally marked noindex, which has nothing to do with the
+          # actual site's SEO. The rest of the SEO category still runs.
+          configPath: ./.github/workflows/lighthouserc.json
+          uploadArtifacts: false
+          temporaryPublicStorage: true
+
+      - name: Format results
+        id: format
+        if: steps.wait.outputs.conclusion == 'success'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require("fs");
+
+            const manifestPath = "${{ steps.lighthouse.outputs.resultsPath }}/manifest.json";
+            const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+            const links = JSON.parse('${{ steps.lighthouse.outputs.links }}' || "{}");
+
+            const categoryLabel = {
+              performance: "Performance",
+              accessibility: "Accessibility",
+              "best-practices": "Best Practices",
+              seo: "SEO",
+              pwa: "PWA",
+            };
+            const emoji = (score) => (score >= 0.9 ? "🟢" : score >= 0.5 ? "🟠" : "🔴");
+
+            // displayValue is Lighthouse's own already-formatted string
+            // (e.g. "1.2 s", "150 ms") - no unit conversion needed here.
+            const metricAuditIds = {
+              FCP: "first-contentful-paint",
+              LCP: "largest-contentful-paint",
+              TBT: "total-blocking-time",
+              SI: "speed-index",
+              CLS: "cumulative-layout-shift",
+            };
+
+            // manifest's own `summary` only has category scores - the
+            // per-metric values (FCP/LCP/etc.) and the device/throttling
+            // conditions both live in the full LHR JSON, so parse each
+            // page's report once and reuse it for both.
+            const parsedRuns = manifest
+              .filter((run) => run.isRepresentativeRun)
+              .map((run) => ({ run, lhr: JSON.parse(fs.readFileSync(run.jsonPath, "utf8")) }));
+
+            // Both pages are audited with identical settings, so this is
+            // read once (from whichever page happened to run first) and
+            // shown once, rather than repeated per page below.
+            const formFactorLabel = { mobile: "📱 Mobile", desktop: "🖥️ Desktop" };
+            const conditionsLine = (() => {
+              const settings = parsedRuns[0]?.lhr.configSettings;
+              if (!settings) return "";
+              const { formFactor, throttlingMethod, throttling } = settings;
+              const detail = throttling
+                ? ` (${throttling.rttMs} ms RTT, ${(throttling.throughputKbps / 1000).toFixed(1)} Mbps, ${throttling.cpuSlowdownMultiplier}x CPU slowdown)`
+                : "";
+              return `_Audited with: ${formFactorLabel[formFactor] ?? formFactor} emulation, ${throttlingMethod} throttling${detail}_`;
+            })();
+
+            const sections = parsedRuns
+              .map(({ run, lhr }) => {
+                const scores = Object.entries(run.summary)
+                  .map(([cat, score]) => `${emoji(score)} **${categoryLabel[cat] ?? cat}** ${Math.round(score * 100)}`)
+                  .join(" &nbsp;·&nbsp; ");
+
+                // Each metric audit carries its own 0-1 score (same scale
+                // as the category scores above) alongside displayValue, so
+                // the same emoji() thresholds apply here too rather than
+                // hand-rolling separate ms thresholds per metric.
+                const metrics = Object.entries(metricAuditIds)
+                  .map(([short, auditId]) => {
+                    const audit = lhr.audits[auditId];
+                    if (!audit) return `**${short}** n/a`;
+                    return `${emoji(audit.score)} **${short}** ${audit.displayValue}`;
+                  })
+                  .join(" &nbsp;·&nbsp; ");
+
+                const reportLink = links[run.url];
+                const reportLine = reportLink ? `[View full report →](${reportLink})` : "_No report link available_";
+
+                return [`#### ${run.url}`, "", scores, "", metrics, "", reportLine].join("\n");
+              })
+              .join("\n\n---\n\n");
+
+            core.setOutput("message", ["### 🔦 Lighthouse report", "", conditionsLine, "", sections].join("\n"));
+
+      # No `number`/`number_force` needed - triggered by pull_request, the
+      # action picks up the PR from context automatically.
+      - name: Post sticky PR comment
+        if: steps.wait.outputs.conclusion == 'success'
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: lighthouse
+          message: ${{ steps.format.outputs.message }}

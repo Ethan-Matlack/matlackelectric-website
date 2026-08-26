@@ -1,37 +1,120 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import CardLink from "../components/CardLink.astro";
+import { Image } from "astro:assets";
+import BackToTopFab from "../components/BackToTopFab.astro";
+import { PORTFOLIO_TAGS, portfolioProjects } from "../data/portfolio";
 ---
+
+<!-- TODO: When filtering by tag, the alternating nature of the rows is not preserved -->
 
 <Layout
   title="Portfolio | Matlack Electric"
-  description="Showcase of Matlack Electric's residential electrical work, including renovation wiring, custom lighting, smart home control, EV charging, and backup power installations."
+  description="Showcase of Matlack Electric's electrical work, including renovation wiring, custom lighting, smart home control, EV charging, and backup power installations."
 >
-  <section class="hero">
-    <div class="container">
-      <h1>Our Portfolio</h1>
-      <p>Explore our recent residential electrical projects.</p>
-    </div>
-  </section>
+  <!-- Wraps everything on the page so BackToTopFab has a containing block
+       that ends exactly where the footer begins - see .portfolio-page-wrap
+       in global.css. Same mechanism as PortfolioProjectLayout's .detail-page-wrap. -->
+  <div class="portfolio-page-wrap">
+    <section class="hero">
+      <div class="container">
+        <h1>Our Portfolio</h1>
+        <p>Explore our recent electrical projects.</p>
+      </div>
+    </section>
 
-  <section class="container">
-    <div class="section-heading">
-      <h2>Recent Projects</h2>
-      <p>Take a look at some of our recent work in residential electrical installations.</p>
-    </div>
-    <div class="grid">
-      <CardLink href="/portfolio/citrone-addition/">
-        <h3>The Citrone Addition</h3>
-        <p>A stunning kitchen & dining addition with custom beam uplighting, cabinet lighting, and smart home integration.</p>
-      </CardLink>
-      <CardLink href="/portfolio/REPLACE_THIS/">
-        <h3>Project 2</h3>
-        <p>A description of Project 2.</p>
-      </CardLink>
-      <CardLink href="/portfolio/REPLACE_THIS/">
-        <h3>Project 3</h3>
-        <p>A description of Project 3.</p>
-      </CardLink>
-    </div>
-  </section>
+    <section class="container">
+      <div class="portfolio-filters" role="tablist" aria-label="Filter by project type">
+        <button type="button" class="filter-chip is-active" role="tab" aria-selected="true">All</button>
+        {
+          PORTFOLIO_TAGS.map((tag) => (
+            <button type="button" class="filter-chip" role="tab" data-tag={tag} aria-selected="false">
+              {tag}
+            </button>
+          ))
+        }
+      </div>
+
+      <!-- Basically nothing gets edited here. Add content to /src/data/portfolio.ts -->
+      <div class="portfolio-rows">
+        {
+          portfolioProjects.map((project, i) => (
+            <a
+              class:list={["project-split", "project-split-link", "portfolio-row", i % 2 === 1 && "reverse"]}
+              href={`/portfolio/${project.slug}/`}
+              data-tags={project.tags.length ? project.tags.join(",") : undefined}
+            >
+              <Image src={project.image} alt={project.title} />
+              <div>
+                <h3>{project.title}</h3>
+                {
+                  project.tags.length > 0 && (
+                    <ul class="tag-list">
+                      {project.tags.map((tag) => (
+                        <li class="tag">{tag}</li>
+                      ))}
+                    </ul>
+                  )
+                }
+                <p>{project.description}</p>
+                <span class="portfolio-row-cta">
+                  View Project
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M9 6l6 6-6 6" />
+                  </svg>
+                </span>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <BackToTopFab />
+  </div>
 </Layout>
+
+<script>
+	const filters = document.querySelector<HTMLElement>(".portfolio-filters");
+	const rows = document.querySelectorAll<HTMLElement>(".portfolio-row");
+
+	if (filters) {
+		const chips = filters.querySelectorAll<HTMLButtonElement>(".filter-chip");
+		// Single-select, like a tab group - clicking a chip selects only that
+		// one. null = "All".
+		let active: string | null = null;
+
+		const updateChips = () => {
+			chips.forEach((chip) => {
+				const isActive = chip.dataset.tag === active || (!chip.dataset.tag && active === null);
+				chip.classList.toggle("is-active", isActive);
+				chip.setAttribute("aria-selected", String(isActive));
+			});
+		};
+
+		const applyFilter = () => {
+			rows.forEach((row) => {
+				const rowTags = row.dataset.tags?.split(",") ?? [];
+				const show = active === null || rowTags.includes(active);
+				row.style.display = show ? "" : "none";
+			});
+		};
+
+		chips.forEach((chip) => {
+			chip.addEventListener("click", () => {
+				active = chip.dataset.tag ?? null;
+				updateChips();
+				applyFilter();
+			});
+		});
+	}
+</script>

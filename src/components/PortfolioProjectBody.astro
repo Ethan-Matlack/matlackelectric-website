@@ -1,0 +1,74 @@
+---
+import type { ImageMetadata } from "astro";
+import { Image } from "astro:assets";
+import type { ContentBlock } from "../data/portfolio";
+// Fallback for a block's image index that's out of range - e.g. a photo
+// referenced by a content block got renamed/removed after the block was
+// written. Warns instead of crashing the rest of the page.
+import placeholder from "../images/placeholder_640x400.svg";
+
+// Turns a project's ordered ContentBlock[] (see portfolio.ts) into the
+// actual portfolio project page markup - one block, one piece of markup,
+// in the order given. `images` is that project's own projectImages(slug)
+// result; a block's `image` field indexes into it (0 = cover, 1 =
+// "1.webp", ...).
+interface Props {
+	blocks: ContentBlock[];
+	images: ImageMetadata[];
+}
+
+const { blocks, images } = Astro.props;
+
+function resolveImage(index: number): ImageMetadata {
+	const image = images[index];
+	if (!image) {
+		console.warn(`PortfolioProjectBody: content block references images[${index}], but only ${images.length} image(s) exist for this project - using the placeholder.`);
+		return placeholder;
+	}
+	return image;
+}
+---
+
+{
+	blocks.map((block) => {
+		switch (block.type) {
+			case "text":
+				return <p>{block.text}</p>;
+
+			case "image":
+				return (
+					<figure class="project-image">
+						<Image src={resolveImage(block.image)} alt="Project Image" />
+						{block.caption && <figcaption>{block.caption}</figcaption>}
+					</figure>
+				);
+
+			case "split":
+				return (
+					<div class:list={["project-split", block.reverse && "reverse"]}>
+						<Image src={resolveImage(block.image)} alt="Project Image" />
+						<div>
+							<h3>{block.heading}</h3>
+							<p>{block.text}</p>
+						</div>
+					</div>
+				);
+
+			case "testimonial":
+				return (
+					<blockquote class="project-testimonial">
+						<p>&ldquo;{block.quote}&rdquo;</p>
+						<footer>
+							{block.author}
+							{block.role && <span class="project-testimonial-role"> — {block.role}</span>}
+						</footer>
+					</blockquote>
+				);
+
+			default:
+				// Exhaustiveness check - if a new ContentBlock variant is added to
+				// portfolio.ts without a case here, this line fails to typecheck.
+				return block satisfies never;
+		}
+	})
+}

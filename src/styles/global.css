@@ -13,9 +13,9 @@
      9. Contact form (JobTread embed)
      10. Section headings
      11. Notice / placeholder boxes
-     12. Detail pages - shared mechanics (ServiceLayout + CaseStudyLayout)
+     12. Detail pages - shared mechanics (ServiceLayout + PortfolioProjectLayout)
      13. Service pages - pricing
-     14. Case studies (portfolio)
+     14. Portfolio projects
      15. Footer
      16. Breakpoints
 ============================================================================= */
@@ -971,6 +971,79 @@ as space allows.
   transform: translateX(0.2rem);
 }
 
+/* Compact per-card category pills (Portfolio grid) - distinct from .badge
+   below (sized/spaced for one prominent label, not several packed
+   together), and colored with --color-accent so tags read as secondary
+   metadata rather than competing with primary buttons/badges. Base rule is
+   plain in-flow (used as-is by PortfolioProjectLayout's hero); the .card-link
+   override below pins it to the card's bottom edge instead. */
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Inside a card, pin the tag row to the bottom-left, level with the
+   chevron, instead of flowing right after the description - so it lands
+   in the same place regardless of how long each card's text is.
+   [data-tags] is only set by CardLink when tags exist (see CardLink.astro),
+   so this reserves the extra bottom padding only on cards that need it. */
+.card-link[data-tags] {
+  padding-bottom: 3.5rem;
+}
+
+.card-link .tag-list {
+  position: absolute;
+  left: 1.5rem;
+  right: 3rem;
+  bottom: 1.5rem;
+  margin-top: 0;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.2em 0.65em;
+  border-radius: 999px;
+  background-color: var(--color-accent);
+  color: var(--color-primary-contrast);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/* Toggle-button row above the Portfolio grid, filtering cards by the tags
+   set in src/data/portfolio.ts (see portfolio.astro's own script). Active
+   state matches .room-hero-shots button.is-active - the site's one other
+   toggle-button pattern. */
+.portfolio-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+}
+
+.filter-chip.is-active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
 /* Small uppercase pill label. Carried over from the starter template -
    currently not used anywhere on the site. */
 .badge {
@@ -1126,12 +1199,12 @@ at the bottom of a page) and for placeholder/no-content states.
 12. Detail pages - shared mechanics
 -----------------------------------
 Shared by both "detail page with a back button" layouts - ServiceLayout
-(src/pages/services/*) and CaseStudyLayout (src/pages/portfolio/*) - via
-the BackToIndexFab component and .detail-page-wrap. Content fills the
-full .container width (no separate narrower text column) - the wrapping
-div that used to cap it at 65ch for readability was removed once
-testing showed the wider measure read fine here. Section 13 (pricing)
-is Service-page-only; section 14 (case studies) is portfolio-only.
+(src/pages/services/*) and PortfolioProjectLayout (src/pages/portfolio/*)
+- via the BackToIndexFab component and .detail-page-wrap. Content fills
+the full .container width (no separate narrower text column) - the
+wrapping div that used to cap it at 65ch for readability was removed once
+testing showed the wider measure read fine here. Section 13 (pricing) is
+Service-page-only; section 14 (portfolio projects) is portfolio-only.
 ============================================================================= */
 
 /* Containing block for .detail-back-fab's .is-above-footer (position:
@@ -1140,6 +1213,15 @@ is Service-page-only; section 14 (case studies) is portfolio-only.
    where the footer begins, so "just above the footer" is correct
    regardless of how much content the page has. */
 .detail-page-wrap {
+  position: relative;
+  min-height: 100%;
+}
+
+/* Same containing-block mechanism as .detail-page-wrap above, for
+   BackToTopFab on the Portfolio index page - kept as its own class rather
+   than reusing .detail-page-wrap since that one's scoped (by name and by
+   the section comment above) to the two detail-page layouts. */
+.portfolio-page-wrap {
   position: relative;
   min-height: 100%;
 }
@@ -1181,8 +1263,27 @@ is Service-page-only; section 14 (case studies) is portfolio-only.
   color: var(--color-primary-contrast);
 }
 
+/* BackToTopFab (Portfolio index page) - reuses .detail-back-fab above for
+   the pill/color/shadow/position styling, but as a <button> (reset border/
+   cursor/font, which .detail-back-fab's <a> didn't need) and hidden by
+   default until scrolled down - see BackToTopFab.astro's own script for
+   the show/hide and footer hand-off logic. */
+.back-to-top-fab {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.back-to-top-fab.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* List styling for a detail layout's main content slot (capabilities
-   lists, case study copy) - scoped to .detail-page-wrap rather than a
+   lists, portfolio project copy) - scoped to .detail-page-wrap rather than a
    dedicated wrapper class, since content here otherwise fills the full
    .container width, and a list stretched that wide looks bad.
    Three things work together to make the list read as centered while
@@ -1203,11 +1304,16 @@ is Service-page-only; section 14 (case studies) is portfolio-only.
   padding-inline: 1.25em;
 }
 
-.detail-page-wrap li {
+/* :not(.tag) - this is meant for actual prose bullet lists in portfolio
+   project body content; without the exclusion it also matches .tag-list's
+   <li> pills wherever a .tag-list sits inside .detail-page-wrap (e.g.
+   PortfolioProjectLayout's hero), unevenly offsetting every tag but the
+   last. */
+.detail-page-wrap li:not(.tag) {
   margin-bottom: 0.4em;
 }
 
-.detail-page-wrap li:last-child {
+.detail-page-wrap li:not(.tag):last-child {
   margin-bottom: 0;
 }
 
@@ -1272,19 +1378,19 @@ service's `pricing` prop.
 }
 
 /* =============================================================================
-14. Case studies (portfolio)
-----------------------------
+14. Portfolio projects
+----------------------
 Deliberately loose rather than a rigid set of typed sections - projects
 vary in photo count and story, so this is a handful of reusable blocks
 (full image, image+text split, testimonial) meant to be mixed freely in
 whatever order suits a given project, not a fixed template.
 ============================================================================= */
 
-.case-study-image {
+.project-image {
   margin: 2rem 0;
 }
 
-.case-study-image img {
+.project-image img {
   width: 100%;
   /* Astro's <Image> sets width/height attributes on the <img> itself
      (e.g. 640x400) for the browser's built-in layout-shift prevention.
@@ -1296,7 +1402,7 @@ whatever order suits a given project, not a fixed template.
   box-shadow: var(--shadow-md);
 }
 
-.case-study-image figcaption {
+.project-image figcaption {
   margin-top: 0.5rem;
   font-size: 0.85rem;
   color: var(--color-muted);
@@ -1306,7 +1412,7 @@ whatever order suits a given project, not a fixed template.
 /* Image + text pair. Single column (stacked) by default; becomes a real
    two-column layout at the desktop breakpoint below, where .reverse also
    flips which side the image sits on. */
-.case-study-split {
+.project-split {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
@@ -1314,18 +1420,80 @@ whatever order suits a given project, not a fixed template.
   margin: 2rem 0;
 }
 
-.case-study-split img {
+.project-split img {
   width: 100%;
   height: auto;
   border-radius: var(--radius);
   box-shadow: var(--shadow-md);
 }
 
-.case-study-split p {
+.project-split p {
   margin-bottom: 0;
 }
 
-.case-study-testimonial {
+/* Crop every Portfolio index photo to a consistent 16:9, centered,
+   regardless of the source image's native aspect ratio - keeps the
+   alternating rows visually uniform even before real (differently-shaped)
+   project photos replace the placeholder. Scoped to .portfolio-row rather
+   than added to .project-split img above, since a project's own body
+   image blocks should keep each photo's natural proportions. */
+.portfolio-row img {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Modifier making a .project-split usable as a whole-block link instead of
+   static content - the Portfolio index's alternating project rows reuse
+   this same image+text pattern, just wrapped in an <a>. Reset the link's
+   default styling and add a hover cue on the image/chevron; kept as its
+   own class rather than folded into .project-split so the plain,
+   non-link version used inside a project's own page is unaffected. */
+.project-split-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.project-split-link img {
+  transition: transform 0.2s ease;
+}
+
+.project-split-link:hover img,
+.project-split-link:focus img {
+  transform: scale(1.02);
+}
+
+/* The "this leads somewhere" cue for a .portfolio-row - same "always
+   visible, not hover-only" reasoning as .card-link-chevron (hover doesn't
+   exist on mobile). */
+.portfolio-row-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.portfolio-row-cta svg {
+  transition: transform 0.15s ease;
+}
+
+.project-split-link:hover .portfolio-row-cta svg,
+.project-split-link:focus .portfolio-row-cta svg {
+  transform: translateX(0.2rem);
+}
+
+/* Vertical stack of .portfolio-row entries (Portfolio index) - generous
+   gap does the separating, no divider lines, so a filtered-out row simply
+   closing the gap around it doesn't leave a stray border behind. */
+.portfolio-rows {
+  display: flex;
+  flex-direction: column;
+  /* gap: 3rem; */
+}
+
+.project-testimonial {
   max-width: 44rem;
   margin: 2rem auto;
   padding: 2rem;
@@ -1334,19 +1502,19 @@ whatever order suits a given project, not a fixed template.
   border-radius: var(--radius);
 }
 
-.case-study-testimonial p {
+.project-testimonial p {
   font-size: 1.15rem;
   font-style: italic;
   color: var(--color-text);
   margin-bottom: 1rem;
 }
 
-.case-study-testimonial footer {
+.project-testimonial footer {
   font-weight: 600;
   font-size: 0.9rem;
 }
 
-.case-study-testimonial-role {
+.project-testimonial-role {
   font-weight: 400;
   color: var(--color-muted);
 }
@@ -1406,13 +1574,13 @@ when absolutely neccessary - responsive design should be attempted first.
     justify-content: center;
   }
 
-  /* Case studies */
-  .case-study-split {
+  /* Portfolio projects */
+  .project-split {
     grid-template-columns: 1fr 1fr;
     gap: 2.5rem;
   }
 
-  .case-study-split.reverse > :first-child {
+  .project-split.reverse > :first-child {
     order: 2;
   }
 }

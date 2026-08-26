@@ -10,7 +10,33 @@ import Layout from "../layouts/Layout.astro";
     <div class="container">
       <h1>404</h1>
       <p>Sorry, the page you're looking for either doesn't exist or has been moved.</p>
-      <a href="/" class="btn btn-primary">Back to Homepage</a>
+      <a href="/" class="btn btn-primary" id="back-link">Back to Homepage</a>
     </div>
   </section>
 </Layout>
+
+<script is:inline>
+	// is:inline so this runs synchronously before paint, same reasoning as
+	// Header.astro's fit-check script - otherwise a deferred module script
+	// would let "Back to Homepage" paint first and visibly swap to
+	// "Go Back" a moment later.
+	(function () {
+		var link = document.getElementById("back-link");
+		if (!link) return;
+
+		var sameOrigin = false;
+		try {
+			sameOrigin = document.referrer && new URL(document.referrer).origin === location.origin;
+		} catch (e) {
+			sameOrigin = false;
+		}
+
+		if (sameOrigin) {
+			link.textContent = "Go Back";
+			link.addEventListener("click", function (event) {
+				event.preventDefault();
+				history.back();
+			});
+		}
+	})();
+</script>

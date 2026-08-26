@@ -1,0 +1,67 @@
+---
+import Layout from "./Layout.astro";
+import BackToIndexFab from "../components/BackToIndexFab.astro";
+import { portfolioProjects } from "../data/portfolio";
+
+interface Props {
+	slug: string;
+}
+
+const { slug } = Astro.props;
+
+// title/description/tags all come from the matching portfolio.ts entry
+// rather than being retyped per page - description in particular doubles
+// as the meta description, the portfolio tile's blurb, AND this page's
+// hero subtitle (see <p>{description}</p> below): one piece of text, not
+// three. The body content (the <slot/> below, typically a
+// <PortfolioProjectBody> fed that project's own content blocks - see
+// portfolio.ts's ContentBlock) is the only real per-project authoring
+// left; testimonials are just one of those block types now, not a
+// separate prop here.
+const project = portfolioProjects.find((p) => p.slug === slug);
+if (!project) {
+	throw new Error(`PortfolioProjectLayout: no portfolio.ts entry found for slug "${slug}"`);
+}
+const { title: projectName, description, tags } = project;
+---
+
+<Layout title={`${projectName} | Matlack Electric`} description={description}>
+	<!-- Wraps everything on the page so BackToIndexFab has a containing block
+	     that ends exactly where the footer begins — see .detail-page-wrap in
+	     global.css. -->
+	<div class="detail-page-wrap">
+		<section class="hero">
+			<div class="container">
+				<h1>{projectName}</h1>
+				<p>{description}</p>
+				{
+					tags.length > 0 && (
+						<ul class="tag-list">
+							{tags.map((tag) => (
+								<li class="tag">{tag}</li>
+							))}
+						</ul>
+					)
+				}
+			</div>
+		</section>
+
+		<!-- Deliberately just a slot, not a fixed set of typed sections - each
+		     project has a different number of photos and a different story to
+		     tell. Normally filled with <PortfolioProjectBody
+		     blocks={project.content} images={images} />, see
+		     src/pages/portfolio/[slug].astro. -->
+		<section class="container">
+			<slot />
+		</section>
+
+		<section class="container">
+			<div class="notice">
+				<p>Have a similar project in mind? Let's talk through what it'd take.</p>
+				<a class="btn btn-primary" href="/contact/">Get a Quote</a>
+			</div>
+		</section>
+
+		<BackToIndexFab href="/portfolio/" label="Portfolio" />
+	</div>
+</Layout>

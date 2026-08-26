@@ -13,9 +13,9 @@
      9. Contact form (JobTread embed)
      10. Section headings
      11. Notice / placeholder boxes
-     12. Detail pages - shared mechanics (ServiceLayout + CaseStudyLayout)
+     12. Detail pages - shared mechanics (ServiceLayout + PortfolioProjectLayout)
      13. Service pages - pricing
-     14. Case studies (portfolio)
+     14. Portfolio projects
      15. Footer
      16. Breakpoints
 ============================================================================= */
@@ -975,7 +975,7 @@ as space allows.
    below (sized/spaced for one prominent label, not several packed
    together), and colored with --color-accent so tags read as secondary
    metadata rather than competing with primary buttons/badges. Base rule is
-   plain in-flow (used as-is by CaseStudyLayout's hero); the .card-link
+   plain in-flow (used as-is by PortfolioProjectLayout's hero); the .card-link
    override below pins it to the card's bottom edge instead. */
 .tag-list {
   display: flex;
@@ -1199,12 +1199,12 @@ at the bottom of a page) and for placeholder/no-content states.
 12. Detail pages - shared mechanics
 -----------------------------------
 Shared by both "detail page with a back button" layouts - ServiceLayout
-(src/pages/services/*) and CaseStudyLayout (src/pages/portfolio/*) - via
-the BackToIndexFab component and .detail-page-wrap. Content fills the
-full .container width (no separate narrower text column) - the wrapping
-div that used to cap it at 65ch for readability was removed once
-testing showed the wider measure read fine here. Section 13 (pricing)
-is Service-page-only; section 14 (case studies) is portfolio-only.
+(src/pages/services/*) and PortfolioProjectLayout (src/pages/portfolio/*)
+- via the BackToIndexFab component and .detail-page-wrap. Content fills
+the full .container width (no separate narrower text column) - the
+wrapping div that used to cap it at 65ch for readability was removed once
+testing showed the wider measure read fine here. Section 13 (pricing) is
+Service-page-only; section 14 (portfolio projects) is portfolio-only.
 ============================================================================= */
 
 /* Containing block for .detail-back-fab's .is-above-footer (position:
@@ -1283,7 +1283,7 @@ is Service-page-only; section 14 (case studies) is portfolio-only.
 }
 
 /* List styling for a detail layout's main content slot (capabilities
-   lists, case study copy) - scoped to .detail-page-wrap rather than a
+   lists, portfolio project copy) - scoped to .detail-page-wrap rather than a
    dedicated wrapper class, since content here otherwise fills the full
    .container width, and a list stretched that wide looks bad.
    Three things work together to make the list read as centered while
@@ -1304,10 +1304,11 @@ is Service-page-only; section 14 (case studies) is portfolio-only.
   padding-inline: 1.25em;
 }
 
-/* :not(.tag) - this is meant for actual prose bullet lists in case study
-   body content; without the exclusion it also matches .tag-list's <li>
-   pills wherever a .tag-list sits inside .detail-page-wrap (e.g.
-   CaseStudyLayout's hero), unevenly offsetting every tag but the last. */
+/* :not(.tag) - this is meant for actual prose bullet lists in portfolio
+   project body content; without the exclusion it also matches .tag-list's
+   <li> pills wherever a .tag-list sits inside .detail-page-wrap (e.g.
+   PortfolioProjectLayout's hero), unevenly offsetting every tag but the
+   last. */
 .detail-page-wrap li:not(.tag) {
   margin-bottom: 0.4em;
 }
@@ -1377,19 +1378,19 @@ service's `pricing` prop.
 }
 
 /* =============================================================================
-14. Case studies (portfolio)
-----------------------------
+14. Portfolio projects
+----------------------
 Deliberately loose rather than a rigid set of typed sections - projects
 vary in photo count and story, so this is a handful of reusable blocks
 (full image, image+text split, testimonial) meant to be mixed freely in
 whatever order suits a given project, not a fixed template.
 ============================================================================= */
 
-.case-study-image {
+.project-image {
   margin: 2rem 0;
 }
 
-.case-study-image img {
+.project-image img {
   width: 100%;
   /* Astro's <Image> sets width/height attributes on the <img> itself
      (e.g. 640x400) for the browser's built-in layout-shift prevention.
@@ -1401,7 +1402,7 @@ whatever order suits a given project, not a fixed template.
   box-shadow: var(--shadow-md);
 }
 
-.case-study-image figcaption {
+.project-image figcaption {
   margin-top: 0.5rem;
   font-size: 0.85rem;
   color: var(--color-muted);
@@ -1411,7 +1412,7 @@ whatever order suits a given project, not a fixed template.
 /* Image + text pair. Single column (stacked) by default; becomes a real
    two-column layout at the desktop breakpoint below, where .reverse also
    flips which side the image sits on. */
-.case-study-split {
+.project-split {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
@@ -1419,14 +1420,14 @@ whatever order suits a given project, not a fixed template.
   margin: 2rem 0;
 }
 
-.case-study-split img {
+.project-split img {
   width: 100%;
   height: auto;
   border-radius: var(--radius);
   box-shadow: var(--shadow-md);
 }
 
-.case-study-split p {
+.project-split p {
   margin-bottom: 0;
 }
 
@@ -1434,7 +1435,7 @@ whatever order suits a given project, not a fixed template.
    regardless of the source image's native aspect ratio - keeps the
    alternating rows visually uniform even before real (differently-shaped)
    project photos replace the placeholder. Scoped to .portfolio-row rather
-   than added to .case-study-split img above, since case studies' own
+   than added to .project-split img above, since a project's own body
    image blocks should keep each photo's natural proportions. */
 .portfolio-row img {
   aspect-ratio: 16 / 9;
@@ -1442,23 +1443,23 @@ whatever order suits a given project, not a fixed template.
   object-position: center;
 }
 
-/* Modifier making a .case-study-split usable as a whole-block link instead
-   of static content - the Portfolio index's alternating project rows reuse
+/* Modifier making a .project-split usable as a whole-block link instead of
+   static content - the Portfolio index's alternating project rows reuse
    this same image+text pattern, just wrapped in an <a>. Reset the link's
    default styling and add a hover cue on the image/chevron; kept as its
-   own class rather than folded into .case-study-split so the plain,
-   non-link version used inside case studies is unaffected. */
-.case-study-split-link {
+   own class rather than folded into .project-split so the plain,
+   non-link version used inside a project's own page is unaffected. */
+.project-split-link {
   color: inherit;
   text-decoration: none;
 }
 
-.case-study-split-link img {
+.project-split-link img {
   transition: transform 0.2s ease;
 }
 
-.case-study-split-link:hover img,
-.case-study-split-link:focus img {
+.project-split-link:hover img,
+.project-split-link:focus img {
   transform: scale(1.02);
 }
 
@@ -1478,8 +1479,8 @@ whatever order suits a given project, not a fixed template.
   transition: transform 0.15s ease;
 }
 
-.case-study-split-link:hover .portfolio-row-cta svg,
-.case-study-split-link:focus .portfolio-row-cta svg {
+.project-split-link:hover .portfolio-row-cta svg,
+.project-split-link:focus .portfolio-row-cta svg {
   transform: translateX(0.2rem);
 }
 
@@ -1492,7 +1493,7 @@ whatever order suits a given project, not a fixed template.
   /* gap: 3rem; */
 }
 
-.case-study-testimonial {
+.project-testimonial {
   max-width: 44rem;
   margin: 2rem auto;
   padding: 2rem;
@@ -1501,19 +1502,19 @@ whatever order suits a given project, not a fixed template.
   border-radius: var(--radius);
 }
 
-.case-study-testimonial p {
+.project-testimonial p {
   font-size: 1.15rem;
   font-style: italic;
   color: var(--color-text);
   margin-bottom: 1rem;
 }
 
-.case-study-testimonial footer {
+.project-testimonial footer {
   font-weight: 600;
   font-size: 0.9rem;
 }
 
-.case-study-testimonial-role {
+.project-testimonial-role {
   font-weight: 400;
   color: var(--color-muted);
 }
@@ -1573,13 +1574,13 @@ when absolutely neccessary - responsive design should be attempted first.
     justify-content: center;
   }
 
-  /* Case studies */
-  .case-study-split {
+  /* Portfolio projects */
+  .project-split {
     grid-template-columns: 1fr 1fr;
     gap: 2.5rem;
   }
 
-  .case-study-split.reverse > :first-child {
+  .project-split.reverse > :first-child {
     order: 2;
   }
 }

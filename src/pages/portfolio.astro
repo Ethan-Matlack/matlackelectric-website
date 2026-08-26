@@ -13,7 +13,7 @@ import { PORTFOLIO_TAGS, portfolioProjects } from "../data/portfolio";
 >
   <!-- Wraps everything on the page so BackToTopFab has a containing block
        that ends exactly where the footer begins - see .portfolio-page-wrap
-       in global.css. Same mechanism as CaseStudyLayout's .detail-page-wrap. -->
+       in global.css. Same mechanism as PortfolioProjectLayout's .detail-page-wrap. -->
   <div class="portfolio-page-wrap">
     <section class="hero">
       <div class="container">
@@ -39,7 +39,7 @@ import { PORTFOLIO_TAGS, portfolioProjects } from "../data/portfolio";
         {
           portfolioProjects.map((project, i) => (
             <a
-              class:list={["case-study-split", "case-study-split-link", "portfolio-row", i % 2 === 1 && "reverse"]}
+              class:list={["project-split", "project-split-link", "portfolio-row", i % 2 === 1 && "reverse"]}
               href={`/portfolio/${project.slug}/`}
               data-tags={project.tags.length ? project.tags.join(",") : undefined}
             >

@@ -9,10 +9,10 @@ in Chattanooga, TN (relocated from PA in 2026 - see `/we-moved`). Built with
 
 Lighthouse scores for the production homepage, updated automatically after every push to `main` (see `.github/workflows/lighthouse-production.yaml`) - not from a PR preview, so these track whatever's actually live.
 
-![Performance](https://img.shields.io/badge/endpoint?url=https://gist.githubusercontent.com/Ethan-Matlack/f241a8d7f1960694987ed02c109ada56/raw/lighthouse-performance.json)
-![Accessibility](https://img.shields.io/badge/endpoint?url=https://gist.githubusercontent.com/Ethan-Matlack/f241a8d7f1960694987ed02c109ada56/raw/lighthouse-accessibility.json)
-![Best Practices](https://img.shields.io/badge/endpoint?url=https://gist.githubusercontent.com/Ethan-Matlack/f241a8d7f1960694987ed02c109ada56/raw/lighthouse-best-practices.json)
-![SEO](https://img.shields.io/badge/endpoint?url=https://gist.githubusercontent.com/Ethan-Matlack/f241a8d7f1960694987ed02c109ada56/raw/lighthouse-seo.json)
+![Performance](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Ethan-Matlack/f241a8d7f1960694987ed02c109ada56/raw/lighthouse-performance.json)
+![Accessibility](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Ethan-Matlack/f241a8d7f1960694987ed02c109ada56/raw/lighthouse-accessibility.json)
+![Best Practices](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Ethan-Matlack/f241a8d7f1960694987ed02c109ada56/raw/lighthouse-best-practices.json)
+![SEO](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Ethan-Matlack/f241a8d7f1960694987ed02c109ada56/raw/lighthouse-seo.json)
 
 Every PR into `main` also gets a fuller Lighthouse report (including Core Web Vitals) posted as a comment - see `.github/workflows/lighthouse-ci.yaml`.
 

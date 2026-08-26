@@ -1,0 +1,40 @@
+---
+// Reuses .detail-back-fab's pill/color/shadow styling from BackToIndexFab
+// (see global.css), but as a <button> that scrolls up rather than an <a>
+// that navigates, and hidden until scrolled down a bit - unlike "back to
+// index", which is useful from anywhere on a detail page, "back to top" is
+// meaningless (just clutter) while already near the top.
+// Must be rendered inside a `.portfolio-page-wrap` ancestor (that's the
+// containing block the "above footer" state anchors to) - same mechanism
+// as BackToIndexFab + .detail-page-wrap.
+---
+
+<button type="button" class="detail-back-fab back-to-top-fab" aria-label="Back to top">&uarr; Back to Top</button>
+
+<script>
+	const fab = document.querySelector<HTMLButtonElement>(".back-to-top-fab");
+	const footer = document.querySelector(".site-footer");
+
+	if (fab) {
+		fab.addEventListener("click", () => {
+			window.scrollTo({ top: 0, behavior: "smooth" });
+		});
+
+		const toggleVisible = () => {
+			fab.classList.toggle("is-visible", window.scrollY > 400);
+		};
+		toggleVisible();
+		window.addEventListener("scroll", toggleVisible, { passive: true });
+	}
+
+	// Same footer hand-off as BackToIndexFab - see that component for why.
+	if (fab && footer) {
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				fab.classList.toggle("is-above-footer", entry.isIntersecting);
+			},
+			{ rootMargin: "0px" },
+		);
+		observer.observe(footer);
+	}
+</script>

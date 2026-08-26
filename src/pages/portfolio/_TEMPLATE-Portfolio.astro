@@ -1,8 +1,15 @@
 ---
 import CaseStudyLayout, { type Testimonial } from "../../layouts/CaseStudyLayout.astro";
 import { Image } from "astro:assets";
+import { portfolioProjects } from "../../data/portfolio";
 // PLACE LINKS TO IMAGES BELOW -- The placeholder image line can be removed once you have real images to use.
 import placeholder640x400 from "../../images/placeholder_640x400.svg";
+
+// SET SLUG BELOW to match this file's name and its entry in portfolio.ts -
+// tags come from there rather than being retyped here, so this page can't
+// drift out of sync with what the Portfolio index and its filter chips
+// show for this project.
+const { tags } = portfolioProjects.find((p) => p.slug === "SLUG-GOES-HERE")!;
 
 const testimonial: Testimonial = {
 	quote: "A quote from the client or builder about how great we are! :)",
@@ -18,7 +25,7 @@ const testimonial: Testimonial = {
 	description="PROJECT DESCRIPTION"
 	projectName="PROJECT NAME"
 	tagline="PROJECT TAGLINE"
-	tags={["TAG 1", "TAG 2", "TAG 3"]}
+	tags={tags}
 	testimonial={testimonial}
 >
 	<p>

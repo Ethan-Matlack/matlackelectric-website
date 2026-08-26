@@ -120,21 +120,48 @@ jobs:
               FCP: "first-contentful-paint",
               LCP: "largest-contentful-paint",
               TBT: "total-blocking-time",
+              SI: "speed-index",
+              CLS: "cumulative-layout-shift",
             };
 
-            const sections = manifest
+            // manifest's own `summary` only has category scores - the
+            // per-metric values (FCP/LCP/etc.) and the device/throttling
+            // conditions both live in the full LHR JSON, so parse each
+            // page's report once and reuse it for both.
+            const parsedRuns = manifest
               .filter((run) => run.isRepresentativeRun)
-              .map((run) => {
-                // manifest's own `summary` only has category scores - the
-                // per-metric values (FCP/LCP/TBT) live in the full LHR JSON.
-                const lhr = JSON.parse(fs.readFileSync(run.jsonPath, "utf8"));
+              .map((run) => ({ run, lhr: JSON.parse(fs.readFileSync(run.jsonPath, "utf8")) }));
 
+            // Both pages are audited with identical settings, so this is
+            // read once (from whichever page happened to run first) and
+            // shown once, rather than repeated per page below.
+            const formFactorLabel = { mobile: "📱 Mobile", desktop: "🖥️ Desktop" };
+            const conditionsLine = (() => {
+              const settings = parsedRuns[0]?.lhr.configSettings;
+              if (!settings) return "";
+              const { formFactor, throttlingMethod, throttling } = settings;
+              const detail = throttling
+                ? ` (${throttling.rttMs} ms RTT, ${(throttling.throughputKbps / 1000).toFixed(1)} Mbps, ${throttling.cpuSlowdownMultiplier}x CPU slowdown)`
+                : "";
+              return `_Audited with: ${formFactorLabel[formFactor] ?? formFactor} emulation, ${throttlingMethod} throttling${detail}_`;
+            })();
+
+            const sections = parsedRuns
+              .map(({ run, lhr }) => {
                 const scores = Object.entries(run.summary)
                   .map(([cat, score]) => `${emoji(score)} **${categoryLabel[cat] ?? cat}** ${Math.round(score * 100)}`)
                   .join(" &nbsp;·&nbsp; ");
 
+                // Each metric audit carries its own 0-1 score (same scale
+                // as the category scores above) alongside displayValue, so
+                // the same emoji() thresholds apply here too rather than
+                // hand-rolling separate ms thresholds per metric.
                 const metrics = Object.entries(metricAuditIds)
-                  .map(([short, auditId]) => `**${short}** ${lhr.audits[auditId]?.displayValue ?? "n/a"}`)
+                  .map(([short, auditId]) => {
+                    const audit = lhr.audits[auditId];
+                    if (!audit) return `**${short}** n/a`;
+                    return `${emoji(audit.score)} **${short}** ${audit.displayValue}`;
+                  })
                   .join(" &nbsp;·&nbsp; ");
 
                 const reportLink = links[run.url];
@@ -144,7 +171,7 @@ jobs:
               })
               .join("\n\n---\n\n");
 
-            core.setOutput("message", ["### 🔦 Lighthouse report", "", sections].join("\n"));
+            core.setOutput("message", ["### 🔦 Lighthouse report", "", conditionsLine, "", sections].join("\n"));
 
       # No `number`/`number_force` needed - triggered by pull_request, the
       # action picks up the PR from context automatically.

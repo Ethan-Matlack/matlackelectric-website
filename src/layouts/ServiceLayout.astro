@@ -20,58 +20,51 @@ const { title, description, serviceName, tagline, pricing } = Astro.props;
 ---
 
 <Layout title={title} description={description}>
-	<!-- Wraps everything on the page (stretched to at least fill .main via
-	     min-height: 100% in CSS) so BackToIndexFab has a containing block
-	     that ends exactly where the footer begins — see
-	     .detail-back-fab.is-above-footer in global.css for why that
-	     matters. -->
-	<div class="detail-page-wrap">
-		<section class="hero">
-			<div class="container">
-				<h1>{serviceName}</h1>
-				<p>{tagline}</p>
-			</div>
-		</section>
+	<section class="hero">
+		<div class="container">
+			<h1>{serviceName}</h1>
+			<p>{tagline}</p>
+		</div>
+	</section>
 
-		<section class="container">
-			<div class="section-heading">
-				<h2>Capabilities</h2>
-			</div>
-			<slot />
-		</section>
+	<section class="container">
+		<div class="section-heading">
+			<h2>Capabilities</h2>
+		</div>
+		<slot />
+	</section>
 
-		{
-			pricing && pricing.length > 0 && (
-				<section class="container">
-					<div class="section-heading">
-						<h2>Pricing</h2>
-						<p>
-							Ballpark ranges for common scopes of work below for "typical" finishes - every renovation is different, so treat these as a
-							starting point for budgeting, not a quote.
-						</p>
-					</div>
-					<div class="pricing-list">
-						{pricing.map((bracket) => (
-							<div class="pricing-row">
-								<div class="pricing-row-header">
-									<p class="pricing-label">{bracket.label}</p>
-									<p class="pricing-price">{bracket.price}</p>
-								</div>
-								{bracket.note && <p class="pricing-note">{bracket.note}</p>}
+	{
+		pricing && pricing.length > 0 && (
+			<section class="container">
+				<div class="section-heading">
+					<h2>Pricing</h2>
+					<p>
+						Ballpark ranges for common scopes of work below for "typical" finishes - every renovation is different, so treat these as a
+						starting point for budgeting, not a quote.
+					</p>
+				</div>
+				<div class="pricing-list">
+					{pricing.map((bracket) => (
+						<div class="pricing-row">
+							<div class="pricing-row-header">
+								<p class="pricing-label">{bracket.label}</p>
+								<p class="pricing-price">{bracket.price}</p>
 							</div>
-						))}
-					</div>
-				</section>
-			)
-		}
+							{bracket.note && <p class="pricing-note">{bracket.note}</p>}
+						</div>
+					))}
+				</div>
+			</section>
+		)
+	}
 
-		<section class="container">
-			<div class="notice">
-				<p>Ready to talk through your project? Let's figure out what it actually needs.</p>
-				<a class="btn btn-primary" href="/contact/">Get a Quote</a>
-			</div>
-		</section>
-
-		<BackToIndexFab href="/services/" label="All Services" />
+	<div class="container">
+		<div class="notice">
+			<p>Ready to talk through your project? Let's figure out what it actually needs.</p>
+			<a class="btn btn-primary" href="/contact/">Get a Quote</a>
+		</div>
 	</div>
+
+	<BackToIndexFab href="/services/" label="All Services" />
 </Layout>

@@ -3,8 +3,9 @@
 // page — long detail pages, especially on mobile), but switches to
 // absolute positioning once the footer is about to enter the viewport —
 // see .detail-back-fab.is-above-footer in global.css and the script below.
-// Must be rendered inside a `.detail-page-wrap` ancestor (that's the
-// containing block the "above footer" state anchors to).
+// Anchors directly to <main> (position: relative, see global.css) for
+// that "above footer" state - no wrapper div needed, since main is always
+// exactly as tall as the space between the header and the footer.
 interface Props {
 	href: string;
 	label: string;
@@ -20,7 +21,7 @@ const { href, label } = Astro.props;
 	const footer = document.querySelector(".site-footer");
 	if (fab && footer) {
 		// No rootMargin buffer, deliberately: fixed (viewport-relative) and
-		// .is-above-footer (absolute, anchored to .detail-page-wrap) only
+		// .is-above-footer (absolute, anchored to main) only
 		// land on the same on-screen spot at one precise scroll position —
 		// the instant the footer's top edge reaches the viewport's bottom
 		// edge. Triggering any earlier (a positive rootMargin, tried first)

@@ -4,9 +4,9 @@
 // that navigates, and hidden until scrolled down a bit - unlike "back to
 // index", which is useful from anywhere on a detail page, "back to top" is
 // meaningless (just clutter) while already near the top.
-// Must be rendered inside a `.portfolio-page-wrap` ancestor (that's the
-// containing block the "above footer" state anchors to) - same mechanism
-// as BackToIndexFab + .detail-page-wrap.
+// Anchors directly to <main> for the "above footer" state - same
+// mechanism as BackToIndexFab, see that component for why no wrapper div
+// is needed for this.
 ---
 
 <button type="button" class="detail-back-fab back-to-top-fab" aria-label="Back to top">&uarr; Back to Top</button>

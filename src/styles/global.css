@@ -98,6 +98,10 @@ body {
    pushes the footer to the bottom of the viewport on short pages without
    pinning it in place (it still flows after content normally on tall
    pages). */
+/* padding-bottom closes out the section rhythm (see the plain `section`
+   rule above) - the gap before the footer comes from here rather than
+   from whatever section happens to be last on a given page, so it stays
+   correct regardless of page structure. */
 main {
   flex: 1;
 }
@@ -146,7 +150,16 @@ vertical padding - the two building blocks most page sections use.
 }
 
 section {
-  padding-block: 2.5rem;
+  padding-top: 2.5rem;
+}
+
+/* :last-of-type, not :last-child - on detail pages (PortfolioProjectLayout,
+   ServiceLayout, portfolio.astro) the last section is followed by a fixed-
+   position back-to-index/top link (BackToIndexFab/BackToTopFab), which is
+   still a later DOM sibling even though it's out of visual flow. :last-child
+   would miss the section entirely in that case. */
+section:last-of-type {
+  padding-bottom: 2.5rem;
 }
 
 /* =============================================================================
@@ -409,7 +422,8 @@ homepage's very different full-viewport hero.
   background-color: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   text-align: center;
-  padding-block: 3rem;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
 }
 
 /* =============================================================================
@@ -1066,6 +1080,28 @@ as space allows.
   margin-bottom: 1rem;
 }
 
+/* Profile photo + bio on the About page. Single column (stacked) by
+   default; becomes a real two-column layout at the desktop breakpoint
+   below - same mechanics as .project-split, but kept as its own class
+   since this is a person's bio, not a portfolio project. */
+.about-bio {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.about-bio img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.about-bio p:last-child {
+  margin-bottom: 0;
+}
+
 /* =============================================================================
 9. Contact form (JobTread embed)
 --------------------------------
@@ -1559,9 +1595,9 @@ when absolutely neccessary - responsive design should be attempted first.
 ============================================================================= */
 
 @media (min-width: 768px) {
-  /* Hero (text-banner pages) */
+  /* Hero (text-banner pages) - padding-top only, see the base .hero rule */
   .hero {
-    padding-block: 5rem;
+    padding-top: 5rem;
   }
 
   /* Homepage 3D hero - landing splash */
@@ -1582,5 +1618,11 @@ when absolutely neccessary - responsive design should be attempted first.
 
   .project-split.reverse > :first-child {
     order: 2;
+  }
+
+  /* About page */
+  .about-bio {
+    grid-template-columns: 1fr 2fr;
+    gap: 2.5rem;
   }
 }

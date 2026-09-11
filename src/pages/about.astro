@@ -1,5 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { Image } from "astro:assets";
+import headshotEthan from "../images/about/headshot-ethan.png";
 ---
 
 <Layout
@@ -9,35 +11,120 @@ import Layout from "../layouts/Layout.astro";
   <section class="hero">
     <div class="container">
       <h1>About Us</h1>
-      <p>Electrical craftsmanship built around renovations.</p>
+      <p>
+        Matlack Electric is fully licensed and insured, with every project built
+        on quality, clean installations, and the professionalism your project
+        deserves.
+      </p>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="about-bio">
+      <Image
+        src={headshotEthan}
+        alt="Ethan Matlack, owner of Matlack Electric"
+      />
+      <div>
+        <h2>Meet Ethan</h2>
+        <p>
+          My background is actually in Robotics Engineering - I studied at
+          Widener University, graduating in 2023. As a freshman there, I
+          received the School of Engineering's Ambassador Award for organizing a
+          large robotics competition.
+        </p>
+        <p>
+          I started Matlack Electric back in 2020 in Chester County,
+          Pennsylvania while I was still in school. Over the years, I've grown
+          from a small service-work-based operation to a full-service electrical
+          contractor spanning multiple disciplines. I love working with
+          homeowners, designers, and contractors to bring their vision to life,
+          and I take pride in the quality of my work and the relationships I
+          build with my clients. I became a licensed Master Electrician in 2023,
+          the same year I graduated.
+        </p>
+        <p>
+          In 2026, I relocated Matlack Electric to Chattanooga, Tennessee.
+          However the business grows from here, I'm still the one who shows up
+          on site and the one you'll be talking to from your first call through
+          the final walkthrough.
+        </p>
+      </div>
+    </div>
+  </section>
+  <section class="container">
+    <div class="notice">
+      <p>
+        <strong>Local recognition:</strong> In 2021, <em>The Daily Local</em> covered
+        the volunteer electrical work I did restoring power in Downingtown after
+        Hurricane Ida - around 30 households back on the grid after several
+        days of unpaid, 14-hour days.
+      </p>
+      <a
+        class="btn btn-outline"
+        href="https://www.dailylocal.com/2021/09/08/electrician-ethan-matlack-21-volunteers-to-help-families-restore-home-power-in-downingtown-during-wake-of-ida/"
+        target="_blank"
+        rel="noopener noreferrer">Read the article</a
+      >
     </div>
   </section>
 
   <section class="container">
     <div class="section-heading">
-      <h2>Our Story</h2>
+      <h2>Qualifications</h2>
       <p>
-        Matlack Electric is a residential electrical contractor built specifically
-        for renovation and remodeling projects. We work closely with homeowners,
-        designers, architects, and general contractors to deliver the electrical
-        systems that make a renovation feel complete - from structural wiring to
-        custom lighting design and modern smart home technology. Our focus is
-        quality: clean installations, thoughtful design, and the professionalism
-        a renovation deserves.
+        My personal licenses, education, and safety training - see
+        <a href="/partners/">Partners &amp; Certifications</a> for the manufacturer-specific
+        training Matlack Electric holds.
       </p>
     </div>
     <div class="grid">
       <div class="card">
-        <h3>Licensed &amp; Insured</h3>
-        <p>Fully licensed and insured for residential electrical work of every scope.</p>
+        <h3>TN LLE License</h3>
+        <p>
+          Licensed statewide in TN as a Limited Licensed Electrician (LLE) since
+          2026. License #64372, <a
+            href="https://search.cloud.commerce.tn.gov"
+            target="_blank"
+            rel="noopener noreferrer">verify here</a
+          >.
+        </p>
       </div>
       <div class="card">
-        <h3>Renovation Specialists</h3>
-        <p>Focused on remodels, partnering with designers, architects, and GCs from rough-in to final trim.</p>
+        <h3>PA Master Electrician License</h3>
+        <p>
+          Licensed in various PA jurisdictions as a Master Electrician since
+          2023.
+        </p>
       </div>
       <div class="card">
-        <h3>Smart Home &amp; Energy Systems</h3>
-        <p>From Lutron lighting control to EV chargers and battery backup, we bring modern systems into every project.</p>
+        <h3>PA HIC License</h3>
+        <p>
+          Licensed statewide in PA as a Home Improvement Contractor (HIC) since
+          2020. License #164436, <a
+            href="https://hicsearch.attorneygeneral.gov/"
+            target="_blank"
+            rel="noopener noreferrer">verify here.</a
+          >
+        </p>
+      </div>
+      <div class="card">
+        <h3>B.S. Robotics Engineering</h3>
+        <p>
+          Widener University, 2023 - team lead on a senior project awarded Best
+          Oral Presentation.
+        </p>
+      </div>
+      <div class="card">
+        <h3>OSHA 10</h3>
+        <p>Certified in OSHA's 10-hour construction industry safety program.</p>
+      </div>
+      <div class="card">
+        <h3>NFPA 70E</h3>
+        <p>
+          Certified in NFPA 70E electrical safety standards for safe work
+          practices around live electrical systems.
+        </p>
       </div>
     </div>
   </section>

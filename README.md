@@ -193,6 +193,7 @@ Config lives in `wrangler.json`:
 - [ ] Add a `COVER.*` photo for every portfolio project - most are still falling
       back to a placeholder image (with a build-time console warning) on both
       the portfolio grid and their own page.
+- [x] Complete the About Us page to include a bio and licensing info.
 
 ### Eventually
 

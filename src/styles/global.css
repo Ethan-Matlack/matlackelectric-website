@@ -4,20 +4,19 @@
    Table of contents:
      1. Design tokens
      2. Reset
-     3. Layout helpers
+     3. Layout helpers (.container, .hero)
      4. Buttons
      5. Header / Navigation
-     6. Hero (text-banner pages)
-     7. Homepage
-     8. Cards, grid & small UI bits
-     9. Contact form (JobTread embed)
-     10. Section headings
-     11. Notice / placeholder boxes
-     12. Detail pages - shared mechanics (ServiceLayout + PortfolioProjectLayout)
-     13. Service pages - pricing
-     14. Portfolio projects
-     15. Footer
-     16. Breakpoints
+     6. Homepage
+     7. Cards, grid & small UI bits
+     8. Contact form (JobTread embed)
+     9. Section headings
+     10. Notice / placeholder boxes
+     11. Detail pages - shared mechanics (ServiceLayout + PortfolioProjectLayout)
+     12. Service pages - pricing
+     13. Portfolio projects
+     14. Footer
+     15. Breakpoints
 ============================================================================= */
 
 /* =============================================================================
@@ -113,7 +112,7 @@ body {
    structured.
 
    position: relative makes this the containing block for
-   .detail-back-fab's .is-above-footer state (see section 12 below) - main
+   .detail-back-fab's .is-above-footer state (see section 11 below) - main
    is always exactly as tall as the space between the header and the
    footer (it's a flex sibling of the footer, not stretched via a
    percentage height), so it doesn't need a wrapper div to get that
@@ -169,11 +168,14 @@ ul {
 /* =============================================================================
 3. Layout helpers
 -----------------
-.container - the shared max-width/centering wrapper most page sections
-use. Purely horizontal: the vertical rhythm between sections is handled by
-main's own flex/gap (see the Reset section above), not by .container
-itself - that's also why this is safe to reuse on .header-inner/
-.footer-inner without needing any exception for them.
+.container and .hero, grouped together as the two building blocks most
+page sections are made of - a plain content section is just .container,
+and a page's banner is .hero wrapping a .container for its own centering.
+
+.container is purely horizontal: the vertical rhythm between sections is
+handled by main's own flex/gap (see the Reset section above), not by
+.container itself - that's also why this is safe to reuse on
+.header-inner/.footer-inner without needing any exception for them.
 ============================================================================= */
 
 .container {
@@ -190,6 +192,23 @@ itself - that's also why this is safe to reuse on .header-inner/
    chasing specific tags/classes one at a time. */
 .container > :last-child {
   margin-bottom: 0;
+}
+
+/* The plain, short banner used by every page except the homepage - a
+   heading and a line of copy over a flat background, sized by its own
+   content (padding only, no forced height). See section 6 below for the
+   homepage's very different full-viewport hero. */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+  /* Own padding, independent of the inter-section gap now (see main's
+     flex/gap in the Reset section) - purely hero's own internal breathing
+     room between its border and its own text/button, unrelated to the
+     spacing to whatever section comes next. */
+  padding-block: 3rem;
 }
 
 /* =============================================================================
@@ -438,29 +457,7 @@ Header.astro's fit-check script).
 }
 
 /* =============================================================================
-6. Hero (text-banner pages)
----------------------------
-The plain, short banner used by every page except the homepage - a
-heading and a line of copy over a flat background, sized by its own
-content (padding only, no forced height). See section 7 below for the
-homepage's very different full-viewport hero.
-============================================================================= */
-
-.hero {
-  position: relative;
-  overflow: hidden;
-  background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  text-align: center;
-  /* Own padding, independent of the inter-section gap now (see main's
-     flex/gap in the Reset section) - purely hero's own internal breathing
-     room between its border and its own text/button, unrelated to the
-     spacing to whatever section comes next. */
-  padding-block: 3rem;
-}
-
-/* =============================================================================
-7. Homepage
+6. Homepage
 -------------------------------------
 Temporarily using a static homepage while the R3F scene is finalized. Once
 the scene is ready, the top portion of this section will be removed.
@@ -948,7 +945,7 @@ keypad, Controls shot only), .room-hero-daynight (day/night toggle).
 }
 
 /* =============================================================================
-8. Cards, grid & small UI bits
+7. Cards, grid & small UI bits
 ------------------------------
 Fluid card grid - auto-fit + minmax fits as many 16rem-minimum columns
 as the row has room for and stretches them to fill it, recalculating
@@ -1136,7 +1133,7 @@ as space allows.
 }
 
 /* =============================================================================
-9. Contact form (JobTread embed)
+8. Contact form (JobTread embed)
 --------------------------------
 Styling around a third-party embed. The form's data-jobtread-web-form /
 data-key attributes, every input's name attribute, and the submit
@@ -1228,8 +1225,8 @@ nothing structural.
 }
 
 /* =============================================================================
-10. Section headings
---------------------
+9. Section headings
+-------------------
 Centered intro block (h2 + a line of muted copy) used above a .grid or
 similar content block, on About/Partners/Services/etc.
 ============================================================================= */
@@ -1250,7 +1247,7 @@ similar content block, on About/Partners/Services/etc.
 }
 
 /* =============================================================================
-11. Notice / placeholder boxes
+10. Notice / placeholder boxes
 ------------------------------
 Dashed-border callout box - used both for real CTAs (e.g. "Get a Quote"
 at the bottom of a page) and for placeholder/no-content states.
@@ -1265,7 +1262,7 @@ at the bottom of a page) and for placeholder/no-content states.
 }
 
 /* =============================================================================
-12. Detail pages - shared mechanics
+11. Detail pages - shared mechanics
 -----------------------------------
 Shared by both "detail page with a back button" layouts - ServiceLayout
 (src/pages/services/*) and PortfolioProjectLayout (src/pages/portfolio/*)
@@ -1276,7 +1273,7 @@ to main - see main's own rule in the Reset section for why it can serve as
 that containing block on its own. Content fills the full .container width
 (no separate narrower text column) - the wrapping div that used to cap it
 at 65ch for readability was removed once testing showed the wider measure
-read fine here. Section 13 (pricing) is Service-page-only; section 14
+read fine here. Section 12 (pricing) is Service-page-only; section 13
 (portfolio projects) is portfolio-only.
 ============================================================================= */
 
@@ -1380,7 +1377,7 @@ read fine here. Section 13 (pricing) is Service-page-only; section 14
 }
 
 /* =============================================================================
-13. Service pages - pricing
+12. Service pages - pricing
 ---------------------------
 The bordered pricing-bracket list on a ServiceLayout page, built from a
 service's `pricing` prop.
@@ -1440,7 +1437,7 @@ service's `pricing` prop.
 }
 
 /* =============================================================================
-14. Portfolio projects
+13. Portfolio projects
 ----------------------
 Deliberately loose rather than a rigid set of typed sections - projects
 vary in photo count and story, so this is a handful of reusable blocks
@@ -1582,7 +1579,7 @@ whatever order suits a given project, not a fixed template.
 }
 
 /* =============================================================================
-15. Footer
+14. Footer
 ----------
 Copyright and contact info, wrapping onto their own centered lines once
 they no longer fit side by side.
@@ -1612,7 +1609,7 @@ they no longer fit side by side.
 }
 
 /* =============================================================================
-16. Breakpoints
+15. Breakpoints
 ---------------
 One combined block for every component's breakpoint overrides, grouped
 below in the same order as their base rules above, rather than a separate

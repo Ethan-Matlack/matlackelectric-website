@@ -4,20 +4,19 @@
    Table of contents:
      1. Design tokens
      2. Reset
-     3. Layout helpers
+     3. Layout helpers (.container, .hero)
      4. Buttons
      5. Header / Navigation
-     6. Hero (text-banner pages)
-     7. Homepage
-     8. Cards, grid & small UI bits
-     9. Contact form (JobTread embed)
-     10. Section headings
-     11. Notice / placeholder boxes
-     12. Detail pages - shared mechanics (ServiceLayout + PortfolioProjectLayout)
-     13. Service pages - pricing
-     14. Portfolio projects
-     15. Footer
-     16. Breakpoints
+     6. Homepage
+     7. Cards, grid & small UI bits
+     8. Contact form (JobTread embed)
+     9. Section headings
+     10. Notice / placeholder boxes
+     11. Detail pages - shared mechanics (ServiceLayout + PortfolioProjectLayout)
+     12. Service pages - pricing
+     13. Portfolio projects
+     14. Footer
+     15. Breakpoints
 ============================================================================= */
 
 /* =============================================================================
@@ -97,9 +96,44 @@ body {
    children of body - main grows to fill any leftover vertical space, which
    pushes the footer to the bottom of the viewport on short pages without
    pinning it in place (it still flows after content normally on tall
-   pages). */
+   pages).
+
+   The page-rhythm gap between sections lives here (flex-column + gap),
+   not on the sections themselves - a flex/grid gap only ever creates space
+   between items once, so there's no way for it to double up the way two
+   adjacent sections' own padding could. It's also naturally immune to a
+   fixed/absolute trailing sibling (BackToIndexFab/BackToTopFab): an
+   out-of-flow element isn't part of the flex layout at all, so it's
+   invisible to gap with no exception needed.
+
+   padding-bottom supplies the matching gap before the footer itself -
+   gap only works between children, so nothing else here would create that
+   last bit of space, regardless of how a given page's content is
+   structured.
+
+   position: relative makes this the containing block for
+   .detail-back-fab's .is-above-footer state (see section 11 below) - main
+   is always exactly as tall as the space between the header and the
+   footer (it's a flex sibling of the footer, not stretched via a
+   percentage height), so it doesn't need a wrapper div to get that
+   property; BackToIndexFab/BackToTopFab anchor to it directly regardless
+   of which page they're on. */
 main {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  padding-bottom: 2.5rem;
+  position: relative;
+}
+
+/* The homepage's full-bleed background (.homepage-bg) is meant to run
+   straight down to the footer, not stop short with a gap of empty page
+   background showing beneath it like every other page's last section
+   wants - :has() lets this stay a plain override here rather than a class
+   threaded through Layout.astro just for one page. */
+main:has(.homepage-bg) {
+  padding-bottom: 0;
 }
 
 img {
@@ -134,8 +168,14 @@ ul {
 /* =============================================================================
 3. Layout helpers
 -----------------
-.container (the shared max-width/centering wrapper) and section's default
-vertical padding - the two building blocks most page sections use.
+.container and .hero, grouped together as the two building blocks most
+page sections are made of - a plain content section is just .container,
+and a page's banner is .hero wrapping a .container for its own centering.
+
+.container is purely horizontal: the vertical rhythm between sections is
+handled by main's own flex/gap (see the Reset section above), not by
+.container itself - that's also why this is safe to reuse on
+.header-inner/.footer-inner without needing any exception for them.
 ============================================================================= */
 
 .container {
@@ -145,8 +185,30 @@ vertical padding - the two building blocks most page sections use.
   padding-inline: 1.25rem;
 }
 
-section {
-  padding-block: 2.5rem;
+/* A trailing child's own bottom margin (a bare <p>, .tag-list,
+   .project-testimonial, ...) would otherwise add on top of the gap above
+   instead of being absorbed by it - zeroing it here covers every
+   .container regardless of what its last child happens to be, rather than
+   chasing specific tags/classes one at a time. */
+.container > :last-child {
+  margin-bottom: 0;
+}
+
+/* The plain, short banner used by every page except the homepage - a
+   heading and a line of copy over a flat background, sized by its own
+   content (padding only, no forced height). See section 6 below for the
+   homepage's very different full-viewport hero. */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+  /* Own padding, independent of the inter-section gap now (see main's
+     flex/gap in the Reset section) - purely hero's own internal breathing
+     room between its border and its own text/button, unrelated to the
+     spacing to whatever section comes next. */
+  padding-block: 3rem;
 }
 
 /* =============================================================================
@@ -395,25 +457,7 @@ Header.astro's fit-check script).
 }
 
 /* =============================================================================
-6. Hero (text-banner pages)
----------------------------
-The plain, short banner used by every page except the homepage - a
-heading and a line of copy over a flat background, sized by its own
-content (padding only, no forced height). See section 7 below for the
-homepage's very different full-viewport hero.
-============================================================================= */
-
-.hero {
-  position: relative;
-  overflow: hidden;
-  background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  text-align: center;
-  padding-block: 3rem;
-}
-
-/* =============================================================================
-7. Homepage
+6. Homepage
 -------------------------------------
 Temporarily using a static homepage while the R3F scene is finalized. Once
 the scene is ready, the top portion of this section will be removed.
@@ -901,7 +945,7 @@ keypad, Controls shot only), .room-hero-daynight (day/night toggle).
 }
 
 /* =============================================================================
-8. Cards, grid & small UI bits
+7. Cards, grid & small UI bits
 ------------------------------
 Fluid card grid - auto-fit + minmax fits as many 16rem-minimum columns
 as the row has room for and stretches them to fill it, recalculating
@@ -975,8 +1019,11 @@ as space allows.
    below (sized/spaced for one prominent label, not several packed
    together), and colored with --color-accent so tags read as secondary
    metadata rather than competing with primary buttons/badges. Base rule is
-   plain in-flow (used as-is by PortfolioProjectLayout's hero); the .card-link
-   override below pins it to the card's bottom edge instead. */
+   plain in-flow, left-aligned (used as-is by the Portfolio index's cards);
+   the .card-link override below pins it to the card's bottom edge instead,
+   and the .hero override further down centers it for PortfolioProjectLayout's
+   hero, since a flex container's own justify-content doesn't inherit from
+   .hero's text-align:center the way text does. */
 .tag-list {
   display: flex;
   flex-wrap: wrap;
@@ -984,6 +1031,14 @@ as space allows.
   list-style: none;
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
+}
+
+/* Centered specifically in a hero (PortfolioProjectLayout's project-tag
+   row under the title/description) - everything else around it there is
+   already centered via .hero's text-align, but that only affects text,
+   not a flex container's item alignment, so this needs its own rule. */
+.hero .tag-list {
+  justify-content: center;
 }
 
 /* Inside a card, pin the tag row to the bottom-left, level with the
@@ -1066,8 +1121,30 @@ as space allows.
   margin-bottom: 1rem;
 }
 
+/* Profile photo + bio on the About page. Single column (stacked) by
+   default; becomes a real two-column layout at the desktop breakpoint
+   below - same mechanics as .project-split, but kept as its own class
+   since this is a person's bio, not a portfolio project. */
+.about-bio {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.about-bio img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.about-bio p:last-child {
+  margin-bottom: 0;
+}
+
 /* =============================================================================
-9. Contact form (JobTread embed)
+8. Contact form (JobTread embed)
 --------------------------------
 Styling around a third-party embed. The form's data-jobtread-web-form /
 data-key attributes, every input's name attribute, and the submit
@@ -1159,8 +1236,8 @@ nothing structural.
 }
 
 /* =============================================================================
-10. Section headings
---------------------
+9. Section headings
+-------------------
 Centered intro block (h2 + a line of muted copy) used above a .grid or
 similar content block, on About/Partners/Services/etc.
 ============================================================================= */
@@ -1181,7 +1258,7 @@ similar content block, on About/Partners/Services/etc.
 }
 
 /* =============================================================================
-11. Notice / placeholder boxes
+10. Notice / placeholder boxes
 ------------------------------
 Dashed-border callout box - used both for real CTAs (e.g. "Get a Quote"
 at the bottom of a page) and for placeholder/no-content states.
@@ -1196,45 +1273,35 @@ at the bottom of a page) and for placeholder/no-content states.
 }
 
 /* =============================================================================
-12. Detail pages - shared mechanics
+11. Detail pages - shared mechanics
 -----------------------------------
 Shared by both "detail page with a back button" layouts - ServiceLayout
 (src/pages/services/*) and PortfolioProjectLayout (src/pages/portfolio/*)
-- via the BackToIndexFab component and .detail-page-wrap. Content fills
-the full .container width (no separate narrower text column) - the
-wrapping div that used to cap it at 65ch for readability was removed once
-testing showed the wider measure read fine here. Section 13 (pricing) is
-Service-page-only; section 14 (portfolio projects) is portfolio-only.
+- via the BackToIndexFab component, plus BackToTopFab on the Portfolio
+index page. All three render their sections directly as children of main
+(no per-page wrapper div) and anchor their fixed-to-absolute swap straight
+to main - see main's own rule in the Reset section for why it can serve as
+that containing block on its own. Content fills the full .container width
+(no separate narrower text column) - the wrapping div that used to cap it
+at 65ch for readability was removed once testing showed the wider measure
+read fine here. Section 12 (pricing) is Service-page-only; section 13
+(portfolio projects) is portfolio-only.
 ============================================================================= */
-
-/* Containing block for .detail-back-fab's .is-above-footer (position:
-   absolute) state below. min-height: 100% (against .main's flex-computed
-   height) means even a short page's wrap still reaches all the way down to
-   where the footer begins, so "just above the footer" is correct
-   regardless of how much content the page has. */
-.detail-page-wrap {
-  position: relative;
-  min-height: 100%;
-}
-
-/* Same containing-block mechanism as .detail-page-wrap above, for
-   BackToTopFab on the Portfolio index page - kept as its own class rather
-   than reusing .detail-page-wrap since that one's scoped (by name and by
-   the section comment above) to the two detail-page layouts. */
-.portfolio-page-wrap {
-  position: relative;
-  min-height: 100%;
-}
 
 /* Fixed by default - always reachable without scrolling, from anywhere on
    the page. BackToIndexFab's IntersectionObserver swaps this to
-   .is-above-footer (position: absolute, anchored to .detail-page-wrap
-   instead of the viewport) once the footer is about to scroll into view,
-   so it comes to rest just above the footer instead of floating on top of
-   it - position: sticky alone can't do this: a sticky element only
-   "catches" as you scroll toward its own place in the document, so placed
-   at the end of a long page it would stay invisible for the entire middle
-   of the page instead of being reachable the whole time. */
+   .is-above-footer (position: absolute, anchored to main) once the footer
+   is about to scroll into view, so it comes to rest just above the footer
+   instead of floating on top of it - position: sticky alone can't do
+   this: a sticky element only "catches" as you scroll toward its own
+   place in the document, so placed at the end of a long page it would
+   stay invisible for the entire middle of the page instead of being
+   reachable the whole time. */
+/* Shared by BackToIndexFab (an <a>) and BackToTopFab (a <button>) - border/
+   cursor/font here exist for the <button> case (undoing its UA chrome);
+   they're harmless no-ops on the <a>, which never had any of that chrome
+   to begin with, so one class covers both instead of splitting the reset
+   out into a second one. */
 .detail-back-fab {
   position: fixed;
   right: 1.25rem;
@@ -1243,14 +1310,17 @@ Service-page-only; section 14 (portfolio projects) is portfolio-only.
   display: inline-flex;
   align-items: center;
   padding: 0.75rem 1.1rem;
+  border: none;
   border-radius: 999px;
   background-color: var(--color-primary);
   color: var(--color-primary-contrast);
+  font: inherit;
   font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
+  cursor: pointer;
   box-shadow: var(--shadow-md);
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
 }
 
 .detail-back-fab.is-above-footer {
@@ -1263,18 +1333,15 @@ Service-page-only; section 14 (portfolio projects) is portfolio-only.
   color: var(--color-primary-contrast);
 }
 
-/* BackToTopFab (Portfolio index page) - reuses .detail-back-fab above for
-   the pill/color/shadow/position styling, but as a <button> (reset border/
-   cursor/font, which .detail-back-fab's <a> didn't need) and hidden by
-   default until scrolled down - see BackToTopFab.astro's own script for
-   the show/hide and footer hand-off logic. */
+/* BackToTopFab's one real difference from BackToIndexFab: hidden until
+   scrolled down a bit, since "back to top" is meaningless (just clutter)
+   near the top of the page, unlike "back to index" which is useful from
+   anywhere - see BackToTopFab.astro's own script for the show/hide and
+   footer hand-off logic. Everything else lives on .detail-back-fab above,
+   including the opacity transition, so this is just the toggle itself. */
 .back-to-top-fab {
-  border: none;
-  cursor: pointer;
-  font: inherit;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s ease, background-color 0.15s ease;
 }
 
 .back-to-top-fab.is-visible {
@@ -1283,9 +1350,18 @@ Service-page-only; section 14 (portfolio projects) is portfolio-only.
 }
 
 /* List styling for a detail layout's main content slot (capabilities
-   lists, portfolio project copy) - scoped to .detail-page-wrap rather than a
+   lists, portfolio project copy) - scoped to .container rather than a
    dedicated wrapper class, since content here otherwise fills the full
-   .container width, and a list stretched that wide looks bad.
+   .container width, and a list stretched that wide looks bad. In practice
+   the only plain (non-.tag-list) <ul>s in page content are the
+   Capabilities lists on services/*.astro pages, all inside a .container -
+   :not(.tag-list) just keeps this from also catching the hero/card tag
+   pills, which are .container's other <ul> user and want none of this.
+   :not(.header-inner):not(.footer-inner) on .container itself is a
+   second, different exclusion: those two also carry the .container class
+   (for its horizontal centering, same as any page section), so without
+   this the nav's <ul>/<li> - genuinely plain, not a .tag-list - would
+   match too and pick up this prose-list spacing/centering by accident.
    Three things work together to make the list read as centered while
    its actual bullets and text stay left-justified:
    - width:fit-content shrinks the list down to whatever its longest line
@@ -1296,7 +1372,7 @@ Service-page-only; section 14 (portfolio projects) is portfolio-only.
    - padding-inline (equal on both sides, not just the left) keeps the
      bullets from hugging the box's edge, without which the box centers
      correctly but its content still looks pushed to the left. */
-.detail-page-wrap ul {
+.container:not(.header-inner):not(.footer-inner) ul:not(.tag-list) {
   width: fit-content;
   max-width: 50rem;
   margin-inline: auto;
@@ -1304,21 +1380,21 @@ Service-page-only; section 14 (portfolio projects) is portfolio-only.
   padding-inline: 1.25em;
 }
 
-/* :not(.tag) - this is meant for actual prose bullet lists in portfolio
-   project body content; without the exclusion it also matches .tag-list's
-   <li> pills wherever a .tag-list sits inside .detail-page-wrap (e.g.
-   PortfolioProjectLayout's hero), unevenly offsetting every tag but the
-   last. */
-.detail-page-wrap li:not(.tag) {
+/* Same two exclusions as above, same reasons - :not(.tag) so this doesn't
+   also offset .tag-list's <li> pills wherever one sits inside a
+   .container (e.g. PortfolioProjectLayout's hero), and
+   :not(.header-inner):not(.footer-inner) so it doesn't reach the nav's
+   <li>s (both also carry .container for centering, unrelated to this). */
+.container:not(.header-inner):not(.footer-inner) li:not(.tag) {
   margin-bottom: 0.4em;
 }
 
-.detail-page-wrap li:not(.tag):last-child {
+.container:not(.header-inner):not(.footer-inner) li:not(.tag):last-child {
   margin-bottom: 0;
 }
 
 /* =============================================================================
-13. Service pages - pricing
+12. Service pages - pricing
 ---------------------------
 The bordered pricing-bracket list on a ServiceLayout page, built from a
 service's `pricing` prop.
@@ -1378,15 +1454,16 @@ service's `pricing` prop.
 }
 
 /* =============================================================================
-14. Portfolio projects
+13. Portfolio projects
 ----------------------
 Deliberately loose rather than a rigid set of typed sections - projects
 vary in photo count and story, so this is a handful of reusable blocks
-(full image, image+text split, testimonial) meant to be mixed freely in
-whatever order suits a given project, not a fixed template.
+(full image, image+text split, video, testimonial) meant to be mixed
+freely in whatever order suits a given project, not a fixed template.
 ============================================================================= */
 
-.project-image {
+.project-image,
+.project-video {
   margin: 2rem 0;
 }
 
@@ -1402,7 +1479,26 @@ whatever order suits a given project, not a fixed template.
   box-shadow: var(--shadow-md);
 }
 
-.project-image figcaption {
+/* Capped on both axes (not just width:100% the way .project-image is) -
+   a landscape video behaves the same as a photo either way, but a
+   portrait one (phone/drone footage shot vertically) would otherwise
+   stretch to the full content width and end up absurdly tall, dominating
+   the whole page instead of reading as one block among several. Capping
+   max-height too means whichever dimension is more constrained wins,
+   and the video just centers at whatever size that produces. */
+.project-video video {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 36rem;
+  margin-inline: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.project-image figcaption,
+.project-video figcaption {
   margin-top: 0.5rem;
   font-size: 0.85rem;
   color: var(--color-muted);
@@ -1520,7 +1616,7 @@ whatever order suits a given project, not a fixed template.
 }
 
 /* =============================================================================
-15. Footer
+14. Footer
 ----------
 Copyright and contact info, wrapping onto their own centered lines once
 they no longer fit side by side.
@@ -1550,7 +1646,7 @@ they no longer fit side by side.
 }
 
 /* =============================================================================
-16. Breakpoints
+15. Breakpoints
 ---------------
 One combined block for every component's breakpoint overrides, grouped
 below in the same order as their base rules above, rather than a separate
@@ -1559,10 +1655,6 @@ when absolutely neccessary - responsive design should be attempted first.
 ============================================================================= */
 
 @media (min-width: 768px) {
-  /* Hero (text-banner pages) */
-  .hero {
-    padding-block: 5rem;
-  }
 
   /* Homepage 3D hero - landing splash */
   .room-hero-splash h1 {
@@ -1582,5 +1674,11 @@ when absolutely neccessary - responsive design should be attempted first.
 
   .project-split.reverse > :first-child {
     order: 2;
+  }
+
+  /* About page */
+  .about-bio {
+    grid-template-columns: 1fr 2fr;
+    gap: 2.5rem;
   }
 }

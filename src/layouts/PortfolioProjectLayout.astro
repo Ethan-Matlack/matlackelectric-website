@@ -26,42 +26,37 @@ const { title: projectName, description, tags } = project;
 ---
 
 <Layout title={`${projectName} | Matlack Electric`} description={description}>
-	<!-- Wraps everything on the page so BackToIndexFab has a containing block
-	     that ends exactly where the footer begins — see .detail-page-wrap in
-	     global.css. -->
-	<div class="detail-page-wrap">
-		<section class="hero">
-			<div class="container">
-				<h1>{projectName}</h1>
-				<p>{description}</p>
-				{
-					tags.length > 0 && (
-						<ul class="tag-list">
-							{tags.map((tag) => (
-								<li class="tag">{tag}</li>
-							))}
-						</ul>
-					)
-				}
-			</div>
-		</section>
+	<section class="hero">
+		<div class="container">
+			<h1>{projectName}</h1>
+			<p>{description}</p>
+			{
+				tags.length > 0 && (
+					<ul class="tag-list">
+						{tags.map((tag) => (
+							<li class="tag">{tag}</li>
+						))}
+					</ul>
+				)
+			}
+		</div>
+	</section>
 
-		<!-- Deliberately just a slot, not a fixed set of typed sections - each
-		     project has a different number of photos and a different story to
-		     tell. Normally filled with <PortfolioProjectBody
-		     blocks={project.content} images={images} />, see
-		     src/pages/portfolio/[slug].astro. -->
-		<section class="container">
-			<slot />
-		</section>
-
-		<section class="container">
-			<div class="notice">
-				<p>Have a similar project in mind? Let's talk through what it'd take.</p>
-				<a class="btn btn-primary" href="/contact/">Get a Quote</a>
-			</div>
-		</section>
-
-		<BackToIndexFab href="/portfolio/" label="Portfolio" />
+	<!-- Deliberately just a slot, not a fixed set of typed sections - each
+	     project has a different number of photos and a different story to
+	     tell. Normally filled with <PortfolioProjectBody
+	     blocks={project.content} images={images} />, see
+	     src/pages/portfolio/[slug].astro. -->
+	<div class="container">
+		<slot />
 	</div>
+
+	<div class="container">
+		<div class="notice">
+			<p>Have a similar project in mind? Let's talk through what it'd take.</p>
+			<a class="btn btn-primary" href="/contact/">Get a Quote</a>
+		</div>
+	</div>
+
+	<BackToIndexFab href="/portfolio/" label="Portfolio" />
 </Layout>

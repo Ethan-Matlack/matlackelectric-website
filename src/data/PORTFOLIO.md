@@ -9,6 +9,8 @@ Create `src/images/portfolio/<slug>/` (the same slug you'll use in the data entr
 - **`COVER.jpg`/`.png`/`.webp`** - the thumbnail shown on the `/portfolio/` grid and at the top of the project's own page. Optional while a project is still being put together - it falls back to a placeholder (with a build-time console warning) if missing.
 - **Everything else**, named however you like - conventionally `1.webp`, `2.webp`, etc. These are what the `image` field on `image`/`split` content blocks below points to.
 
+Got a video for this project too? It doesn't go in this folder - see "Adding a video" under step 3 below.
+
 ## 2. Add the data entry
 
 Add an object to `portfolioProjectInputs` in `portfolio.ts`:
@@ -29,7 +31,7 @@ Add an object to `portfolioProjectInputs` in `portfolio.ts`:
 
 ## 3. Build the `content` array
 
-`content` is an ordered list of blocks - they render on the page in the exact order you list them, so arrange them however tells the project's story. Four block types exist:
+`content` is an ordered list of blocks - they render on the page in the exact order you list them, so arrange them however tells the project's story. Five block types exist:
 
 **`text`** - a full-width paragraph.
 ```ts
@@ -44,6 +46,11 @@ Add an object to `portfolioProjectInputs` in `portfolio.ts`:
 **`split`** - a photo next to a heading + paragraph, side by side. Add `reverse: true` to put the photo on the right instead of the left.
 ```ts
 { type: "split", image: 1, heading: "...", text: "...", reverse: true } // reverse is optional
+```
+
+**`video`** - a single full-width video, with playback controls and an optional caption. `src` is a plain path under `public/`, not an index like `image`/`split` use - see "Adding a video" below.
+```ts
+{ type: "video", src: "/videos/portfolio/hyphenated-page-slug/clip.mp4", caption: "..." } // caption is optional
 ```
 
 **`testimonial`** - a pull-quote. Just don't include one if the project doesn't have a quote to use - there's no separate "enable testimonial" flag, it only shows up if you add this block.
@@ -61,3 +68,13 @@ On `image`/`split` blocks, `image` is a **number**, not a filename - it's the in
 - ...and so on.
 
 If a block references an index that doesn't exist (a photo got renamed or removed after the block was written), it falls back to the placeholder with a console warning instead of breaking the page - but it's worth fixing when you notice the warning.
+
+### Adding a video
+
+Videos don't go in `src/images/portfolio/<slug>/` with the photos - they live in `public/videos/portfolio/<slug>/` instead, and a `video` block points at one directly by path:
+
+```ts
+{ type: "video", src: "/videos/portfolio/hyphenated-page-slug/clip.mp4" }
+```
+
+This is different from `image`/`split` on purpose. Photos go through `astro:assets` for resizing/format conversion at build time, which needs them under `src/`; a video isn't resized or converted at all, so there's nothing for that pipeline to do - it's served as-is, the same way any other file in `public/` is. That also means there's no numbered-index lookup or placeholder fallback for video - if the path is wrong, the video just won't play, so double-check it against the actual filename.

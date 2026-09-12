@@ -1019,8 +1019,11 @@ as space allows.
    below (sized/spaced for one prominent label, not several packed
    together), and colored with --color-accent so tags read as secondary
    metadata rather than competing with primary buttons/badges. Base rule is
-   plain in-flow (used as-is by PortfolioProjectLayout's hero); the .card-link
-   override below pins it to the card's bottom edge instead. */
+   plain in-flow, left-aligned (used as-is by the Portfolio index's cards);
+   the .card-link override below pins it to the card's bottom edge instead,
+   and the .hero override further down centers it for PortfolioProjectLayout's
+   hero, since a flex container's own justify-content doesn't inherit from
+   .hero's text-align:center the way text does. */
 .tag-list {
   display: flex;
   flex-wrap: wrap;
@@ -1028,6 +1031,14 @@ as space allows.
   list-style: none;
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
+}
+
+/* Centered specifically in a hero (PortfolioProjectLayout's project-tag
+   row under the title/description) - everything else around it there is
+   already centered via .hero's text-align, but that only affects text,
+   not a flex container's item alignment, so this needs its own rule. */
+.hero .tag-list {
+  justify-content: center;
 }
 
 /* Inside a card, pin the tag row to the bottom-left, level with the
@@ -1441,11 +1452,12 @@ service's `pricing` prop.
 ----------------------
 Deliberately loose rather than a rigid set of typed sections - projects
 vary in photo count and story, so this is a handful of reusable blocks
-(full image, image+text split, testimonial) meant to be mixed freely in
-whatever order suits a given project, not a fixed template.
+(full image, image+text split, video, testimonial) meant to be mixed
+freely in whatever order suits a given project, not a fixed template.
 ============================================================================= */
 
-.project-image {
+.project-image,
+.project-video {
   margin: 2rem 0;
 }
 
@@ -1461,7 +1473,26 @@ whatever order suits a given project, not a fixed template.
   box-shadow: var(--shadow-md);
 }
 
-.project-image figcaption {
+/* Capped on both axes (not just width:100% the way .project-image is) -
+   a landscape video behaves the same as a photo either way, but a
+   portrait one (phone/drone footage shot vertically) would otherwise
+   stretch to the full content width and end up absurdly tall, dominating
+   the whole page instead of reading as one block among several. Capping
+   max-height too means whichever dimension is more constrained wins,
+   and the video just centers at whatever size that produces. */
+.project-video video {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 36rem;
+  margin-inline: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.project-image figcaption,
+.project-video figcaption {
   margin-top: 0.5rem;
   font-size: 0.85rem;
   color: var(--color-muted);

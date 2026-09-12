@@ -54,6 +54,14 @@ function resolveImage(index: number): ImageMetadata {
 					</div>
 				);
 
+			case "video":
+				return (
+					<figure class="project-video">
+						<video src={block.src} controls muted playsinline preload="metadata" />
+						{block.caption && <figcaption>{block.caption}</figcaption>}
+					</figure>
+				);
+
 			case "testimonial":
 				return (
 					<blockquote class="project-testimonial">

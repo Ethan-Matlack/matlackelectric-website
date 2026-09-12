@@ -128,35 +128,31 @@ const portfolioProjectInputs: PortfolioProjectInput[] = [
 		content: [
 			{
 				type: "text",
-				text: "This project added a full kitchen and dining space onto the back of the home, and the brief from day one was lighting-first: the exposed beams overhead needed to be a feature, not just something to work around, and the whole space needed to dim and scene together instead of being switched room by room.",
+				text: "This project expanded the existing kitchen and dining space with an addition to the back of the home, and the vaulted ceiling allowed for some really fun lighting opportunities.",
 			},
 			{
 				type: "split",
-				image: 1,
-				heading: "Beam Uplighting",
-				text: "Concealed fixtures run the length of each exposed beam, washing light upward instead of down — the beams read as a design feature after dark instead of disappearing into shadow.",
+				image: 5,
+				heading: "Layered Lighting",
+				text: "This project holds a special place in my heart, because it beautifully demonstrates the power of layered lighting. This project used uplighting on top of the beams and cabinets for the main light source, recessed cans and under-cabinet lighting for task lighting, and sconces and pendant fixtures for accents. All of this is tied into a single Lutron Caseta system, so all of these lighting layers can be effortlessly controlled with one keypad press instead of six switches.",
 			},
 			{
 				type: "split",
 				image: 2,
 				heading: "Cabinet Lighting",
-				text: "Undercabinet and toe-kick lighting throughout the kitchen, all on the same dimming system as the beams — task lighting where it's needed without a separate switch plate for every zone.",
+				text: "Under, above, and interior cabinet lighting throughout the kitchen allows for enough light for any task, while also creating a beautiful ambiance when the main lights are off.",
 				reverse: true,
 			},
 			{
+				type: "split",
+				image: 4,
+				heading: "Behind the Scenes",
+				text: "A behind the scenes look at the drivers and wiring for the cabinet lighting, all tucked away above one of the cabinets so that they're out of view, but still easily accessible for future service.",
+			},
+			{
 				type: "image",
-				image: 3,
+				image: 0,
 				caption: "The addition at night, beams, cabinets, and general lighting all on one Lutron scene.",
-			},
-			{
-				type: "text",
-				text: 'Everything in the addition — beams, cabinets, general lighting — is tied into a single Lutron RadioRA 3 system, so the whole space moves between "cooking," "dinner," and "off" with one keypad press instead of six switches.',
-			},
-			{
-				type: "testimonial",
-				quote: "A quote from the client or builder about how great we are! :)",
-				author: "CLIENT NAME",
-				role: "CLIENT ROLE",
 			},
 		],
 	},

@@ -1353,10 +1353,15 @@ read fine here. Section 12 (pricing) is Service-page-only; section 13
    lists, portfolio project copy) - scoped to .container rather than a
    dedicated wrapper class, since content here otherwise fills the full
    .container width, and a list stretched that wide looks bad. In practice
-   the only plain (non-.tag-list) <ul>s anywhere on the site are the
+   the only plain (non-.tag-list) <ul>s in page content are the
    Capabilities lists on services/*.astro pages, all inside a .container -
    :not(.tag-list) just keeps this from also catching the hero/card tag
    pills, which are .container's other <ul> user and want none of this.
+   :not(.header-inner):not(.footer-inner) on .container itself is a
+   second, different exclusion: those two also carry the .container class
+   (for its horizontal centering, same as any page section), so without
+   this the nav's <ul>/<li> - genuinely plain, not a .tag-list - would
+   match too and pick up this prose-list spacing/centering by accident.
    Three things work together to make the list read as centered while
    its actual bullets and text stay left-justified:
    - width:fit-content shrinks the list down to whatever its longest line
@@ -1367,7 +1372,7 @@ read fine here. Section 12 (pricing) is Service-page-only; section 13
    - padding-inline (equal on both sides, not just the left) keeps the
      bullets from hugging the box's edge, without which the box centers
      correctly but its content still looks pushed to the left. */
-.container ul:not(.tag-list) {
+.container:not(.header-inner):not(.footer-inner) ul:not(.tag-list) {
   width: fit-content;
   max-width: 50rem;
   margin-inline: auto;
@@ -1375,15 +1380,16 @@ read fine here. Section 12 (pricing) is Service-page-only; section 13
   padding-inline: 1.25em;
 }
 
-/* :not(.tag) - this is meant for actual prose bullet lists; without the
-   exclusion it also matches .tag-list's <li> pills wherever one sits
-   inside a .container (e.g. PortfolioProjectLayout's hero), unevenly
-   offsetting every tag but the last. */
-.container li:not(.tag) {
+/* Same two exclusions as above, same reasons - :not(.tag) so this doesn't
+   also offset .tag-list's <li> pills wherever one sits inside a
+   .container (e.g. PortfolioProjectLayout's hero), and
+   :not(.header-inner):not(.footer-inner) so it doesn't reach the nav's
+   <li>s (both also carry .container for centering, unrelated to this). */
+.container:not(.header-inner):not(.footer-inner) li:not(.tag) {
   margin-bottom: 0.4em;
 }
 
-.container li:not(.tag):last-child {
+.container:not(.header-inner):not(.footer-inner) li:not(.tag):last-child {
   margin-bottom: 0;
 }
 

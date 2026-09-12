@@ -1,0 +1,33 @@
+---
+import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
+
+const pricing: PricingBracket[] = [
+	{
+		label: "Caseta Shade",
+		price: "Starting at $600",
+		note: "Lutron newest and most affordable shade system. Includes shade and installation.",
+	},
+	{
+		label: "Triathalon Select Shade",
+		price: "Starting at $800",
+		note: "Lutron's mid-tier shade system. The select line is more afforable but has limited fabric and color options. Includes shade and installation.",
+	},
+	{
+		label: "Triathalon Shade",
+		price: "Starting at $1,200",
+		note: "Lutron's mid-tier shade system. None of the restrictions of the select line. Includes shade and installation.",
+	},
+];
+---
+
+<ServiceLayout
+	title="Shading | Matlack Electric"
+	description="Shading solutions from Lutron. Motorized shades and drapery, integrated with your lighting and smart-home controls for a seamless experience."
+	serviceName="Shading"
+	tagline="Shading solutions from Lutron. Motorized shades and drapery, integrated with your lighting and smart-home controls for a seamless experience."
+	pricing={pricing}
+>
+	<ul>
+		<li>Certified installation of Lutron motorized shades and drapery.</li>
+	</ul>
+</ServiceLayout>

@@ -1,39 +1,32 @@
 ---
 import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
 
-// PLACEHOLDER PRICING — rough guesses, not real numbers. Replace before
-// this page goes live.
 const pricing: PricingBracket[] = [
 	{
 		label: "Multi-room audio wiring (per zone)",
-		price: "$500 – $900",
-		note: "In-ceiling or in-wall speaker wiring for one room or zone.",
+		price: "Starting at $2,000",
+		note: "In-ceiling or in-wall speakers paired with a Sonos or similar multi-room audio system. Starting price reflects a typical 2-speaker install with mid-range speakers and a Sonos Amp. Price varies based on number of zones, speaker type, and complexity of installation.",
 	},
 	{
-		label: "Whole-home AV rough-in",
-		price: "$3,000 – $6,000",
-		note: "Structured wiring and an equipment rack for a full renovation.",
-	},
-	{
-		label: "Equipment rack + rough-in only",
-		price: "$1,500 – $2,500",
-		note: "For homes bringing in their own AV integrator for the equipment.",
+		label: "Whole-home A/V rough-in",
+		price: "Starting at $5,000",
+		note: "Includes equipment rack, structured wiring, multi-room audio wiring, and video distribution for TVs throughout the home. Price varies based on size of home and complexity of installation.",
 	},
 ];
 ---
 
 <ServiceLayout
 	title="Audio/Visual | Matlack Electric"
-	description="Whole-home audio and video wiring — in-ceiling speakers, video distribution, and equipment racks built in during your renovation."
+	description="Whole-home audio and video wiring - in-ceiling speakers, video distribution, and equipment racks built in during your renovation."
 	serviceName="Audio/Visual"
-	tagline="Whole-home audio and video, wired in from the start or added to an existing home. We handle the structured cabling, in-ceiling speakers, and equipment racks — the infrastructure that makes multi-room sound and video actually reliable, not just a bundle of wireless workarounds."
+	tagline="Whole-home audio and video, wired in from the start or added to an existing home. We handle the structured cabling, in-ceiling speakers, and equipment racks - the infrastructure that makes multi-room sound and video actually reliable, not just a bundle of wireless workarounds."
 	pricing={pricing}
 >
 	<ul>
-		<li>Multi-room audio wiring — in-ceiling and in-wall speakers, wired zones controlled independently.</li>
+		<li>Multi-room audio wiring - in-ceiling and in-wall speakers, wired zones controlled independently.</li>
 		<li>Structured video distribution for TVs throughout the home from a single equipment rack.</li>
-		<li>Dedicated AV equipment racks and cable management, planned during the rough-in phase.</li>
-		<li>Coordination with your AV integrator or home theater designer when specialized equipment is involved.</li>
-		<li>Low-voltage rough-in timed to your renovation's framing and drywall schedule.</li>
+		<li>Dedicated A/V equipment racks and cable management, planned during the rough-in phase.</li>
+		<li>Coordination with your A/V integrator or home theater designer when specialized equipment is involved.</li>
+		<li>Because we handle electrical and A/V, there's no concern for conflicting schedules or installation issues.</li>
 	</ul>
 </ServiceLayout>

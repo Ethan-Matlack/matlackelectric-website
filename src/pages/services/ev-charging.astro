@@ -1,23 +1,16 @@
 ---
 import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
 
-// PLACEHOLDER PRICING — rough guesses, not real numbers. Replace before
-// this page goes live.
 const pricing: PricingBracket[] = [
 	{
-		label: "Single Level 2 charger circuit",
-		price: "$800 – $1,500",
-		note: "Existing panel already has capacity — the common case for a first charger.",
+		label: "Level 2 charger",
+		price: "$1,000 – $2,000",
+		note: "Install of a Tesla Wall Connector or similar Level 2 charger for any major EV brand. Price reflects a typical garage installation with a 240V circuit run from a nearby panel to the charger location. Price varies based on distance from panel, wall type, and complexity of installation.",
 	},
 	{
-		label: "Charger circuit + panel upgrade",
-		price: "$3,000 – $5,000",
-		note: "When the existing panel doesn't have room or capacity for the new circuit.",
-	},
-	{
-		label: "Load management system (multi-charger)",
-		price: "$1,200 – $2,000",
-		note: "Share panel capacity across two or more chargers without a full upgrade.",
+		label: "Commercial chargers",
+		price: "Contact for quote",
+		note: "Have a small business or commercial property? We can install commercial EV chargers for your employees or customers. Price varies based on number of chargers, distance from panel, and complexity of installation.",
 	},
 ];
 ---
@@ -30,10 +23,9 @@ const pricing: PricingBracket[] = [
 	pricing={pricing}
 >
 	<ul>
-		<li>Level 2 (240V) charger circuit installation for any major EV brand — Tesla, Rivian, Ford, and more.</li>
+		<li>Tesla Certified Installer - we source Wall Connectors directly and install to Tesla's standards.</li>
+		<li>Level 2 (240V/208V) charger circuit installation for any major EV brand - Tesla, Rivian, Ford, and more.</li>
 		<li>Panel capacity evaluation, including load calculations and panel upgrades where needed.</li>
-		<li>Load management systems for homes charging multiple EVs on shared panel capacity.</li>
-		<li>Tesla Certified Installer — we source Wall Connectors directly and install to Tesla's standards.</li>
-		<li>Permitting and inspection handled as part of the job, not an afterthought.</li>
+		<li>Load management systems for homes or businesses charging multiple EVs on shared panel capacity.</li>
 	</ul>
 </ServiceLayout>

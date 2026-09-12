@@ -16,19 +16,6 @@ Lighthouse scores for the production homepage, updated automatically after every
 
 Every PR into `main` also gets a fuller Lighthouse report (including Core Web Vitals) posted as a comment - see `.github/workflows/lighthouse-ci.yaml`.
 
-## Current Status
-
-This project serves `new.matlackelectric.com` - the real future site. The
-primary domain `matlackelectric.com` is currently served by a separate,
-dedicated Cloudflare Worker (outside this repo) showing a temporary "we've
-moved" placeholder while this new site is built. This project has no involvement
-in that splash page.
-
-When `new.matlackelectric.com` is ready to retire in favor of the apex domain,
-that's just a routing change (point `matlackelectric.com` at this Worker instead
-of the splash one, update `wrangler.json`'s `routes` and `astro.config.mjs`'s
-`site` accordingly) - no code changes needed here.
-
 ## Tech Stack
 
 - <img src="https://skillicons.dev/icons?i=astro" width="20" height="20" alt="" /> **[Astro 5](https://astro.build)** Entirely static output, pre-rendered at build time.
@@ -159,9 +146,7 @@ they navigated from elsewhere on the site, the button reads "Go Back" and calls
 
 Config lives in `wrangler.json`:
 
-- **Custom domains**: only `new.matlackelectric.com` routes to this Worker (see
-  [Current status](#current-status) - the primary domain routes to a separate
-  splash Worker for now).
+- **Custom domains**: `matlackelectric.com` routes to this Worker.
 - **Assets**: `dist/` is served via the `ASSETS` binding, with no worker invoked
   for static asset requests (the default) - the whole site is prerendered static
   output, so there's no per-request logic that needs to run first.
@@ -184,9 +169,10 @@ Config lives in `wrangler.json`:
       (see [Notable features](#notable-features)).
 - [x] Rename `CaseStudyLayout`/`CaseStudyBody` to
       `PortfolioProjectLayout`/`PortfolioProjectBody` for consistent naming.
-- [ ] Cut the primary domains over to this Worker once the site is production
-      ready - update `wrangler.json`'s `routes` and `astro.config.mjs`'s `site`
-      to point at `matlackelectric.com` instead of `new.matlackelectric.com`.
+- [x] Cut the primary domain over to this Worker - `wrangler.json`'s `routes`
+      and `astro.config.mjs`'s `site` now point at `matlackelectric.com`, and
+      the temporary splash Worker that used to serve the apex domain is
+      disabled.
 - [ ] Write real content blocks for every portfolio project - most entries in
       `portfolio.ts` are still tile-only stubs (`content: []`, grid card + basic
       info, no written project page yet). See `PORTFOLIO.md`.

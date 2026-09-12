@@ -8,7 +8,7 @@ import react from "@astrojs/react";
 
 // https://astro.build/config
 export default defineConfig({
-    site: "https://new.matlackelectric.com",
+    site: "https://matlackelectric.com",
     integrations: [sitemap(), react()],
     adapter: cloudflare({
         platformProxy: {

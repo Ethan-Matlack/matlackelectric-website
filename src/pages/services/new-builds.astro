@@ -1,23 +1,16 @@
 ---
 import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
 
-// PLACEHOLDER PRICING — rough guesses, not real numbers. Replace before
-// this page goes live.
 const pricing: PricingBracket[] = [
 	{
 		label: "New construction electrical",
-		price: "$4 – $7 per sq ft",
-		note: "Full rough-in through trim-out — scope depends on finishes and fixture count.",
-	},
-	{
-		label: "Service entrance + panel",
-		price: "$3,000 – $5,000",
-		note: "Meter, service entrance, and main panel sized for the home.",
+		price: "$8 – $15 per sq ft",
+		note: "This will vary significantly based on the size of the home and level of finishes. Reach out for a more accurate estimate based on your specific project.",
 	},
 	{
 		label: "Structured wiring / networking add-on",
-		price: "Starting at $2,500",
-		note: "Networking and low-voltage infrastructure bundled into the build.",
+		price: "Starting at $2,000",
+		note: "Networking and low-voltage infrastructure bundled into the build. Minimum package includes a handful of network drops, a structured wiring panel, and a WiFi system. More advanced packages available.",
 	},
 ];
 ---
@@ -26,14 +19,15 @@ const pricing: PricingBracket[] = [
 	title="New Builds | Matlack Electric"
 	description="Full electrical and low-voltage installation for new residential construction, coordinated directly with your builder from the ground up."
 	serviceName="New Builds"
-	tagline="Full electrical and low-voltage installation for new residential construction, coordinated directly with your builder from the ground up. From the service entrance and panel to every outlet, fixture, and network drop, we're wired in before the walls close, not called back after."
+	tagline="Full electrical and low-voltage installation for new residential construction, coordinated directly with your builder from the ground up. Electrical, telecom (hardwired and WiFi), cameras and security, audiovisual, and smart-home controls - we're your one-stop-shop."
 	pricing={pricing}
 >
 	<ul>
 		<li>Full-home electrical rough-in and trim-out for new construction.</li>
-		<li>Service entrance, meter, and panel sizing planned around the home's actual load, not guessed.</li>
 		<li>Structured wiring, networking, and smart-home infrastructure built in during framing, not retrofitted later.</li>
-		<li>Direct coordination with your builder's schedule, from foundation through final inspection.</li>
-		<li>Every circuit, fixture, and low-voltage drop planned against the final floor plan and finishes.</li>
+		<li>Temporary power, lighting, and network installation for the duration of the construction process.</li>
+		<li>Lighting design and consultation as part of the new construction process.</li>
+		<li>Close coordination with designers, architects, and general contractors throughout.</li>
+		<li>Full plans drawn up for all electrical and low-voltage systems (in excess of code requirements.)</li>
 	</ul>
 </ServiceLayout>

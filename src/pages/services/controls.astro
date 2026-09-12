@@ -1,39 +1,32 @@
 ---
 import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
 
-// PLACEHOLDER PRICING — rough guesses, not real numbers. Replace before
-// this page goes live.
 const pricing: PricingBracket[] = [
 	{
-		label: "Caseta retrofit (per room)",
-		price: "$300 – $600",
-		note: "Smart switches and dimmers, no new wiring needed.",
+		label: "Caseta retrofit (per device)",
+		price: "Approx. $100",
+		note: "Simple swap of existing switches and dimmers for smart devices (or adding wireless remote/keypads). No new wiring needed.",
 	},
 	{
 		label: "RadioRA 3 whole-home system",
-		price: "$8,000 – $15,000",
-		note: "Full keypad and dimmer system for a renovation-scale project.",
-	},
-	{
-		label: "Motorized shades (per window)",
-		price: "$800 – $1,500",
-		note: "Shade and control included, per window.",
+		price: "Starting at $8,000",
+		note: "The approximate additional cost for a whole-home RadioRA 3 system on top of a basic installation with standard switches and dimmers.",
 	},
 ];
 ---
 
 <ServiceLayout
-	title="Smart Home Controls | Matlack Electric"
-	description="Smart lighting and shade control from Lutron — RadioRA 3 for whole-home systems, Caseta for retrofit-friendly upgrades — designed around how you actually live."
-	serviceName="Smart Home Controls"
-	tagline="Smart lighting and shade control from Lutron, the industry leader — RadioRA 3 for whole-home systems, Caseta for retrofit-friendly upgrades. We design the keypads and scenes around how you actually use each room, not just switch everything over to an app."
+	title="Lutron Controls | Matlack Electric"
+	description="Smart lighting and shade control from Lutron - RadioRA 3 for whole-home systems, Caseta for budget and retrofit-friendly upgrades. We design the keypads and scenes around how you actually use each room, not just switch everything over to an app."
+	serviceName="Lutron Controls"
+	tagline="Smart lighting and shade control from Lutron - RadioRA 3 for whole-home systems, Caseta for budget and retrofit-friendly upgrades. We design the keypads and scenes around how you actually use each room, not just switch everything over to an app."
 	pricing={pricing}
 >
 	<ul>
-		<li>Certified installation of both Lutron Caseta and RadioRA 3.</li>
-		<li>Caseta for retrofit-friendly projects — no need to open every wall.</li>
+		<li>Certified installation of both Lutron Caseta and RadioRA 2/3.</li>
+		<li>Caseta for budget and retrofit-friendly projects - no need to open every wall.</li>
 		<li>RadioRA 3 for whole-home lighting and shade control on larger renovations.</li>
 		<li>Keypad and scene programming (All On/Off, Entertain, Relax, and more) tailored to how you actually live.</li>
-		<li>Motorized shade integration alongside lighting control.</li>
+		<li>Motorized shade and Sonos audio integration alongside lighting control.</li>
 	</ul>
 </ServiceLayout>

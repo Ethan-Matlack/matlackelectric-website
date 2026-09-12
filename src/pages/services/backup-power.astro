@@ -1,23 +1,21 @@
 ---
 import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
 
-// PLACEHOLDER PRICING — rough guesses, not real numbers. Replace before
-// this page goes live.
 const pricing: PricingBracket[] = [
 	{
 		label: "Standby generator (whole-home)",
 		price: "$12,000 – $18,000",
-		note: "Generator, transfer switch, and install for an average-size home.",
+		note: "Generac generator, transfer switch, and install for an average-size home.",
 	},
 	{
-		label: "Battery backup (critical loads)",
-		price: "$10,000 – $16,000",
+		label: "Battery backup solutions",
+		price: "Starting at $10,000",
 		note: "Standalone or solar-integrated, sized to cover essential circuits during an outage.",
 	},
 	{
-		label: "Transfer switch only",
-		price: "$1,500 – $2,500",
-		note: "Generator already owned — install and hookup only.",
+		label: "Transfer switch",
+		price: "$1,000 – $2,500",
+		note: "Have a portable generator? We can install a transfer switch to make it plug-and-play while maintaining code compliance and safety.",
 	},
 ];
 ---
@@ -30,7 +28,7 @@ const pricing: PricingBracket[] = [
 	pricing={pricing}
 >
 	<ul>
-		<li>Generac certified standby generator installation and sizing.</li>
+		<li>Generac certified installer for air-cooled standby generators.</li>
 		<li>Battery backup systems, standalone or integrated with solar.</li>
 		<li>Automatic transfer switches and critical-loads panels for a seamless outage response.</li>
 		<li>Load calculations and load-management devices sized to your home's real usage.</li>

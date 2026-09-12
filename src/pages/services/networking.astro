@@ -1,23 +1,21 @@
 ---
 import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
 
-// PLACEHOLDER PRICING — rough guesses, not real numbers. Replace before
-// this page goes live.
 const pricing: PricingBracket[] = [
 	{
 		label: "WiFi coverage assessment + access point install",
 		price: "$800 – $1,500",
-		note: "Fixing dead zones in an existing home.",
+		note: "Have dead zones in your home? Your ISP's router typically isn't enough to cover a whole home. We'll assess your home's layout and install access points for whole-home coverage.",
 	},
 	{
-		label: "Security camera system (per camera)",
-		price: "$400 – $700",
-		note: "Wired camera, mounting, and network integration.",
+		label: "Security camera system",
+		price: "~$500 + $250/camera",
+		note: "Includes installation of an NVR and cameras, plus configuration of the system. No subscription fees or cloud dependencies. Assumes reasonable access to the areas where cameras are installed. Price varies based on number of cameras and complexity of installation.",
 	},
 	{
 		label: "Full network build-out",
-		price: "$3,000 – $6,000",
-		note: "Rack, switches, and access points for whole-home coverage.",
+		price: "Starting at $2,000",
+		note: "Have a new build or major renovation? We can design and install a full structured wiring and networking system, including a network rack, patch panel, access points, and more. Price varies based on size of home and complexity of installation.",
 	},
 ];
 ---
@@ -26,14 +24,14 @@ const pricing: PricingBracket[] = [
 	title="Low-Voltage, Data & Network | Matlack Electric"
 	description="Structured wiring, Ubiquiti UniFi network design, and security camera systems — the low-voltage backbone for a home that actually works the way you expect it to."
 	serviceName="Low-Voltage, Data &amp; Network"
-	tagline="Structured wiring, whole-house WiFi design, and security camera systems — the low-voltage backbone for a home that actually works the way you expect it to, wired in during your renovation instead of patched in later."
+	tagline="Structured wiring, whole-house WiFi design, and security camera systems - the low-voltage backbone for a home that actually works the way you expect it to, planned for and wired from the beginning, not as an afterthought once the walls are closed."
 	pricing={pricing}
 >
 	<ul>
-		<li>Structured cabling (Cat6/Cat6a) run to the rooms that need it, not just wherever's convenient.</li>
-		<li>Ubiquiti UniFi network design — access points, switches, and a router that covers the whole home.</li>
-		<li>Wired security camera systems, integrated with your network from the start.</li>
-		<li>Wired drops for streaming, gaming, and home office setups that WiFi alone can't handle.</li>
-		<li>Network racks and patch panels sized and mounted cleanly, not an afterthought closet.</li>
+		<li>Structured cabling (Cat6/Cat6a) run to the rooms and walls that need it, not just wherever's convenient.</li>
+		<li>Ubiquiti network design. We simulate the WiFi coverage during design to ensure optimal performance.</li>
+		<li>Ubiquiti UniFi access point installation and configuration for whole-home coverage.</li>
+		<li>Wired security camera systems with absolutely no subscription fees or cloud dependencies.</li>
+		<li>Network racks and patch panels sized with room to spare and labeled clearly for future maintenance.</li>
 	</ul>
 </ServiceLayout>

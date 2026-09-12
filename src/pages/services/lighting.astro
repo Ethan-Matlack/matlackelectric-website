@@ -1,23 +1,21 @@
 ---
 import ServiceLayout, { type PricingBracket } from "../../layouts/ServiceLayout.astro";
 
-// PLACEHOLDER PRICING — rough guesses, not real numbers. Replace before
-// this page goes live.
 const pricing: PricingBracket[] = [
 	{
-		label: "Single-room lighting design + install",
-		price: "$2,000 – $4,000",
-		note: "Kitchen, living room, or primary bedroom scale.",
-	},
-	{
 		label: "Whole-home lighting plan",
-		price: "$10,000 – $20,000",
-		note: "Full layout, fixtures, and switching across every room.",
+		price: "Starting at $2000",
+		note: "We'll work with you and your designer to plan lighting that fits your home's layout and your lifestyle. Includes full plans and product specifications for the electrician to install the lighting system.",
 	},
 	{
 		label: "Fixture install only",
-		price: "$150 – $300 per fixture",
-		note: "Design already set — we handle rough-in and install.",
+		price: "$75 - $150 per fixture",
+		note: "Installation of already-purchased fixtures where existing wiring is in place.",
+	},
+	{
+		label: "Custom light fixture",
+		price: "Contact for quote",
+		note: "Can't find what you're looking for? We can design and manufacture a custom fixture to your specifications, from concept to installation. Includes 3rd party UL testing and certification for safety and code compliance. Price varies based on complexity, materials, and size.",
 	},
 ];
 ---
@@ -26,14 +24,12 @@ const pricing: PricingBracket[] = [
 	title="Custom Lighting | Matlack Electric"
 	description="In-house lighting design and installation — layered lighting planned room by room, from fixture selection through rough-in and trim."
 	serviceName="Custom Lighting"
-	tagline="If you can dream it, we can design and install it — in-house lighting design paired with installation, so the plan and the wiring come from the same place. Layered lighting, ambient, task, and accent, planned room by room, not an afterthought once the walls are closed."
+	tagline="If you can dream it, we can design and install it - in-house lighting design paired with installation, so the plan and the wiring come from the same place. Layered lighting, ambient, task, and accent, planned room by room, not an afterthought once the walls are closed."
 	pricing={pricing}
 >
 	<ul>
 		<li>Lighting layout and layering (ambient, task, accent) planned room by room.</li>
-		<li>Recessed, pendant, sconce, and undercabinet fixture installation.</li>
-		<li>In-house lighting design — fixture selection and layout, not just installation.</li>
-		<li>Dimming and layered switching designed in from the start, not bolted on afterward.</li>
-		<li>Integration with Lutron control where whole-home dimming and scenes make sense.</li>
+		<li>In-house lighting design - fixture selection and layout, not just installation.</li>
+		<li>Integration with Lutron Caseta or RadioRa systems.</li>
 	</ul>
 </ServiceLayout>

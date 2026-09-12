@@ -60,14 +60,14 @@ jobs:
       # there's no branch-alias URL to construct here. No configPath here
       # either, deliberately: lighthouserc.json skips the is-crawlable SEO
       # audit specifically because PR preview URLs are noindex'd - verified
-      # new.matlackelectric.com has no X-Robots-Tag/meta-robots noindex at
+      # matlackelectric.com has no X-Robots-Tag/meta-robots noindex at
       # all, so that audit is meaningful here and should run normally.
       - name: Run Lighthouse
         id: lighthouse
         if: steps.wait.outputs.conclusion == 'success'
         uses: treosh/lighthouse-ci-action@v12
         with:
-          urls: https://new.matlackelectric.com/
+          urls: https://matlackelectric.com/
           uploadArtifacts: false
 
       # Auth'd with the gist-scoped PAT (not the default GITHUB_TOKEN,

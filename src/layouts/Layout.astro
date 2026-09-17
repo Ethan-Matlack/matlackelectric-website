@@ -16,9 +16,50 @@ const { title, description, image } = Astro.props;
 <html lang="en">
 	<head>
 		<BaseHead title={title} description={description} image={image} />
+		<!-- Google Tag Manager -->
+		<!-- Gated to the live domain (matlackelectric.com, or any subdomain of
+		     it) only - this is a fully static, prerendered site, and Cloudflare
+		     builds once per commit and serves that same build from both the
+		     production custom domain and each branch's preview alias
+		     (<branch>-matlackelectric-website...workers.dev), so there's no
+		     build-time way to tell them apart. A runtime hostname check here
+		     is the only thing that can - it also means Lighthouse CI runs
+		     against preview URLs never pollute real analytics, since Lighthouse
+		     runs a real Chromium with JS enabled. -->
+		<script is:inline>
+		if (/(^|\.)matlackelectric\.com$/.test(location.hostname)) {
+			(function (w, d, s, l, i) {
+				w[l] = w[l] || [];
+				w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+				var f = d.getElementsByTagName(s)[0],
+				j = d.createElement(s),
+				dl = l != "dataLayer" ? "&l=" + l : "";
+				j.async = true;
+				j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+				f.parentNode.insertBefore(j, f);
+			})(window, document, "script", "dataLayer", "GTM-5NH6TB7H");
+		}
+		</script>
+		<!-- End Google Tag Manager -->
 		<slot name="head" />
 	</head>
 	<body>
+		<!-- Google Tag Manager (noscript) -->
+		<!-- Deliberately NOT domain-gated like the head script above - it
+		     can't be. <noscript> content only renders when JS is disabled
+		     entirely, meaning there's no script execution happening in that
+		     case to check location.hostname against. In practice this only
+		     over-fires for the rare visitor who both disables JS and lands on
+		     a preview URL specifically - Lighthouse's Chromium runs with JS
+		     enabled, so CI traffic never hits this path either way. -->
+		<noscript>
+			<iframe
+				src="https://www.googletagmanager.com/ns.html?id=GTM-5NH6TB7H"
+				height="0"
+				width="0"
+				style="display:none;visibility:hidden"></iframe>
+		</noscript>
+		<!-- End Google Tag Manager (noscript) -->
 		<Header />
 		<main>
 			<slot />

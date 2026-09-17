@@ -8,6 +8,7 @@
 	"routes": [
 		{ "pattern": "matlackelectric.com", "custom_domain": true }
 	],
+	"workers_dev": true,
 	"assets": {
 		"directory": "./dist",
 		"binding": "ASSETS"
